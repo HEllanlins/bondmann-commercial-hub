@@ -1,6 +1,6 @@
-import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import type { ComponentProps } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
@@ -9,34 +9,46 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary:
+        default:
           "bg-gradient-to-br from-aqua to-slateink text-primary-foreground shadow-lg shadow-aqua/25 hover:brightness-110",
-        glass:
-          "glass-strong text-foreground hover:bg-card/85",
-        signal:
-          "bg-bond text-accent-foreground shadow-lg shadow-bond/25 hover:brightness-105",
+        glass: "glass-strong text-foreground hover:bg-card/85",
+        signal: "bg-bond text-accent-foreground shadow-lg shadow-bond/25 hover:brightness-105",
         outline: "border border-border bg-transparent text-foreground hover:bg-secondary",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "text-steel hover:bg-secondary hover:text-foreground",
-        danger: "bg-destructive text-destructive-foreground hover:brightness-110",
+        link: "text-aqua underline-offset-4 hover:underline",
+        destructive: "bg-destructive text-destructive-foreground hover:brightness-110",
       },
       size: {
-        sm: "h-9 px-3.5 text-[13px]",
-        md: "h-11 px-4",
+        default: "h-11 px-4",
+        sm: "h-9 rounded-xl px-3.5 text-[13px]",
         lg: "h-12 px-6 text-base",
         icon: "size-10",
       },
       block: { true: "w-full", false: "" },
     },
-    defaultVariants: { variant: "primary", size: "md", block: false },
+    defaultVariants: { variant: "default", size: "default", block: false },
   },
 );
 
-type ButtonProps = ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & { asChild?: boolean };
-
-export function Button({ className, variant, size, block, asChild, ...props }: ButtonProps) {
-  const Comp = asChild ? Slot : "button";
-  return (
-    <Comp className={cn(buttonVariants({ variant, size, block }), className)} {...props} />
-  );
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
 }
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, block, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, block }), className)}
+        ref={ref}
+        {...props}
+      />
+    );
+  },
+);
+Button.displayName = "Button";
+
+export { Button };
