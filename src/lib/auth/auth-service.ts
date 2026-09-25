@@ -77,7 +77,6 @@ export async function changePassword(
 ): Promise<AuthResult> {
   const { error } = await supabase.auth.updateUser({
     password: newPassword,
-    // @ts-expect-error current_password é aceito pelo backend em trocas autenticadas
     current_password: currentPassword,
   });
   if (error) return { ok: false, error: friendlyAuthError(error.message) };
