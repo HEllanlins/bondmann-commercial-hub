@@ -1,0 +1,5 @@
+- [ ] Public pages and catalogue linked to existing records
+- [ ] Authentication and password recovery screens
+- [ ] Client portal and staff dashboard with appropriate access
+- [ ] PWA and Vercel/Capacitor preparation
+- [ ] Verify navigation, auth where possible, responsive layout and build signal
