@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as ContatoRouteImport } from './routes/contato'
@@ -19,10 +20,16 @@ import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
+import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -70,6 +77,16 @@ const SolucoesRoute = SolucoesRouteImport.update({
   path: '/solucoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedClienteRoute = AuthenticatedClienteRouteImport.update({
+  id: '/cliente',
+  path: '/cliente',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +99,8 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/cliente': typeof AuthenticatedClienteRoute
+  '/painel': typeof AuthenticatedPainelRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,10 +113,13 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/cliente': typeof AuthenticatedClienteRoute
+  '/painel': typeof AuthenticatedPainelRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/cadastro': typeof CadastroRoute
   '/contato': typeof ContatoRoute
@@ -107,6 +129,8 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/_authenticated/cliente': typeof AuthenticatedClienteRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +145,8 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/cliente'
+    | '/painel'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,9 +159,12 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/cliente'
+    | '/painel'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/auth'
     | '/cadastro'
     | '/contato'
@@ -145,10 +174,13 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/_authenticated/cliente'
+    | '/_authenticated/painel'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CadastroRoute: typeof CadastroRoute
   ContatoRoute: typeof ContatoRoute
@@ -167,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -232,11 +271,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolucoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/cliente': {
+      id: '/_authenticated/cliente'
+      path: '/cliente'
+      fullPath: '/cliente'
+      preLoaderRoute: typeof AuthenticatedClienteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedClienteRoute: typeof AuthenticatedClienteRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedClienteRoute: AuthenticatedClienteRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CadastroRoute: CadastroRoute,
   ContatoRoute: ContatoRoute,
