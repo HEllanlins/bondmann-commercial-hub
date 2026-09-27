@@ -35,7 +35,7 @@ function AccountAction() {
     );
   return (
     <Button asChild size="sm">
-      {isStaffRole(role) ? <Link to="/painel">Painel</Link> : <Link to="/cliente">Minha área</Link>}
+      {isStaffRole(role) ? <Link to="/painel" search={{ modulo: "Dashboard" }}>Painel</Link> : <Link to="/cliente">Minha área</Link>}
     </Button>
   );
 }
