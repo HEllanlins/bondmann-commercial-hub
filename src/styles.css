@@ -10,6 +10,8 @@
  * Todos os valores em oklch. Nunca usar cores fixas nos componentes.
  */
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -157,13 +159,13 @@
 @utility glass {
   background-color: color-mix(in oklab, var(--card) 55%, transparent);
   backdrop-filter: blur(20px);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, white 60%, transparent);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
 }
 
 @utility glass-strong {
   background-color: color-mix(in oklab, var(--card) 70%, transparent);
   backdrop-filter: blur(20px);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, white 60%, transparent);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
 }
 
 @utility no-scrollbar {
