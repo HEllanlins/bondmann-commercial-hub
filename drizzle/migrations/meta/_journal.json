@@ -15,6 +15,13 @@
       "when": 1790299605730,
       "tag": "0001_admin_user_management",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790555359305,
+      "tag": "0002_add_funcionario_role",
+      "breakpoints": true
     }
   ]
 }
