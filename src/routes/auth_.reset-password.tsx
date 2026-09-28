@@ -1,0 +1,3 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { AuthPage } from '@/components/bond/auth-pages';
+export const Route=createFileRoute('/auth_/reset-password')({head:()=>({meta:[{title:'Redefinir senha — Bondmann Commercial Hub'},{name:'description',content:'Redefinir senha no Bondmann Commercial Hub.'},{property:'og:title',content:'Redefinir senha — Bondmann Commercial Hub'},{property:'og:description',content:'Redefinir senha no Bondmann Commercial Hub.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:()=> <AuthPage mode="reset"/>});

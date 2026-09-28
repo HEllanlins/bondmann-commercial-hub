@@ -12,7 +12,7 @@ import agua from '@/assets/segmento-agua.jpg';
 import industrial from '@/assets/bondmann-industrial.jpg';
 
 const images: Record<string,string> = { agro, metalurgia: metal, 'tratamento-agua': agua, industrial };
-const actions = [{to:'/solucoes', label:'Conheça nossas soluções'}, {to:'/contato',label:'Fale conosco'}, {to:'/auth',label:'Acessar área do cliente'}] as const;
+const actions = [{to:'/solucoes', label:'Conheça nossas soluções'}, {to:'/contato',label:'Fale conosco'}, {to:'/login',label:'Acessar área do cliente'}] as const;
 export function HomePage(){return <SiteShell>
   <section className="relative mx-auto mt-3 min-h-[520px] max-w-[1500px] overflow-hidden md:min-h-[620px]">
     <img src={industrial} alt="Instalação industrial de produtos químicos" className="absolute inset-0 size-full object-cover" />

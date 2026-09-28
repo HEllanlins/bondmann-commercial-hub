@@ -1,0 +1,3 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { AuthPage } from '@/components/bond/auth-pages';
+export const Route=createFileRoute('/auth_/confirm')({head:()=>({meta:[{title:'E-mail confirmado — Bondmann Commercial Hub'},{name:'description',content:'E-mail confirmado no Bondmann Commercial Hub.'},{property:'og:title',content:'E-mail confirmado — Bondmann Commercial Hub'},{property:'og:description',content:'E-mail confirmado no Bondmann Commercial Hub.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:()=> <AuthPage mode="confirm"/>});
