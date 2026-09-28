@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as EmpresaRouteImport } from './routes/empresa'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
@@ -22,6 +23,8 @@ import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
 import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth_.reset-password'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -50,6 +53,11 @@ const ContatoRoute = ContatoRouteImport.update({
 const EmpresaRoute = EmpresaRouteImport.update({
   id: '/empresa',
   path: '/empresa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProdutosRoute = ProdutosRouteImport.update({
@@ -87,6 +95,16 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthConfirmRoute = AuthConfirmRouteImport.update({
+  id: '/auth_/confirm',
+  path: '/auth/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/auth_/reset-password',
+  path: '/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/contato': typeof ContatoRoute
   '/empresa': typeof EmpresaRoute
+  '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
@@ -101,6 +120,8 @@ export interface FileRoutesByFullPath {
   '/solucoes': typeof SolucoesRoute
   '/cliente': typeof AuthenticatedClienteRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,6 +129,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/contato': typeof ContatoRoute
   '/empresa': typeof EmpresaRoute
+  '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
@@ -115,6 +137,8 @@ export interface FileRoutesByTo {
   '/solucoes': typeof SolucoesRoute
   '/cliente': typeof AuthenticatedClienteRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/auth/confirm': typeof AuthConfirmRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +148,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/contato': typeof ContatoRoute
   '/empresa': typeof EmpresaRoute
+  '/login': typeof LoginRoute
   '/produtos': typeof ProdutosRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
@@ -131,6 +156,8 @@ export interface FileRoutesById {
   '/solucoes': typeof SolucoesRoute
   '/_authenticated/cliente': typeof AuthenticatedClienteRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/auth_/confirm': typeof AuthConfirmRoute
+  '/auth_/reset-password': typeof AuthResetPasswordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +167,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/contato'
     | '/empresa'
+    | '/login'
     | '/produtos'
     | '/recuperar-senha'
     | '/redefinir-senha'
@@ -147,6 +175,8 @@ export interface FileRouteTypes {
     | '/solucoes'
     | '/cliente'
     | '/painel'
+    | '/auth/confirm'
+    | '/auth/reset-password'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -154,6 +184,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/contato'
     | '/empresa'
+    | '/login'
     | '/produtos'
     | '/recuperar-senha'
     | '/redefinir-senha'
@@ -161,6 +192,8 @@ export interface FileRouteTypes {
     | '/solucoes'
     | '/cliente'
     | '/painel'
+    | '/auth/confirm'
+    | '/auth/reset-password'
   id:
     | '__root__'
     | '/'
@@ -169,6 +202,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/contato'
     | '/empresa'
+    | '/login'
     | '/produtos'
     | '/recuperar-senha'
     | '/redefinir-senha'
@@ -176,6 +210,8 @@ export interface FileRouteTypes {
     | '/solucoes'
     | '/_authenticated/cliente'
     | '/_authenticated/painel'
+    | '/auth_/confirm'
+    | '/auth_/reset-password'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -185,11 +221,14 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   ContatoRoute: typeof ContatoRoute
   EmpresaRoute: typeof EmpresaRoute
+  LoginRoute: typeof LoginRoute
   ProdutosRoute: typeof ProdutosRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   ServicosRoute: typeof ServicosRoute
   SolucoesRoute: typeof SolucoesRoute
+  AuthConfirmRoute: typeof AuthConfirmRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -234,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/empresa'
       fullPath: '/empresa'
       preLoaderRoute: typeof EmpresaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/produtos': {
@@ -285,6 +331,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/auth_/confirm': {
+      id: '/auth_/confirm'
+      path: '/auth/confirm'
+      fullPath: '/auth/confirm'
+      preLoaderRoute: typeof AuthConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth_/reset-password': {
+      id: '/auth_/reset-password'
+      path: '/auth/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -308,11 +368,14 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   ContatoRoute: ContatoRoute,
   EmpresaRoute: EmpresaRoute,
+  LoginRoute: LoginRoute,
   ProdutosRoute: ProdutosRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   ServicosRoute: ServicosRoute,
   SolucoesRoute: SolucoesRoute,
+  AuthConfirmRoute: AuthConfirmRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
