@@ -1,11 +1,14 @@
 /** Perfis de acesso da plataforma. VISITANTE = usuário não autenticado. */
-export type AppRole = "admin" | "colaborador" | "cliente";
+export type AppRole = "admin" | "colaborador" | "funcionario" | "cliente";
 
 export const ROLE_LABELS: Record<AppRole, string> = {
   admin: "Administrador",
   colaborador: "Colaborador",
+  funcionario: "Funcionário",
   cliente: "Cliente",
 };
+
+export const ROLE_ORDER: AppRole[] = ["admin", "colaborador", "funcionario", "cliente"];
 
 /** Permissões granulares dos módulos internos (evoluem sem alterar o frontend). */
 export const PERMISSIONS = {
@@ -26,7 +29,7 @@ export const PERMISSIONS = {
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 export function isStaffRole(role: AppRole | null): boolean {
-  return role === "admin" || role === "colaborador";
+  return role === "admin" || role === "colaborador" || role === "funcionario";
 }
 
 /**
@@ -39,8 +42,9 @@ export function canAccess(
   permission: Permission,
 ): boolean {
   if (role === "admin") return true;
-  if (role !== "colaborador") return false;
-  // Colaborador sem permissões específicas recebe o conjunto básico.
+  if (role !== "colaborador" && role !== "funcionario") return false;
+  if (permission === PERMISSIONS.usuarios || permission === PERMISSIONS.configuracoes)
+    return permissions.includes(permission) && role === "colaborador";
   if (permissions.length === 0) {
     return (
       permission === PERMISSIONS.dashboard ||
@@ -49,7 +53,9 @@ export function canAccess(
       permission === PERMISSIONS.visitas ||
       permission === PERMISSIONS.followUps ||
       permission === PERMISSIONS.crm ||
-      permission === PERMISSIONS.produtos
+      permission === PERMISSIONS.rotas ||
+      permission === PERMISSIONS.produtos ||
+      permission === PERMISSIONS.iaComercial
     );
   }
   return permissions.includes(permission);

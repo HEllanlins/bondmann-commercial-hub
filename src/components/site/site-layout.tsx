@@ -30,7 +30,7 @@ function AccountAction() {
   if (!session)
     return (
       <Button asChild size="sm">
-        <Link to="/auth">Entrar</Link>
+        <Link to="/login">Entrar</Link>
       </Button>
     );
   return (
