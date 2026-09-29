@@ -129,7 +129,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
     if (recovery === 'invalid') return <Layout><Result icon={<AlertTriangle className="size-8" />} title="Link inválido ou expirado" text="Para redefinir a senha, abra o link mais recente enviado ao seu e-mail ou solicite um novo."><Button asChild block><Link to="/recuperar-senha">Solicitar novo link</Link></Button><Button asChild variant="outline" block><Link to="/login">Voltar para o login</Link></Button></Result></Layout>;
   }
 
-  const head = { login: ['Bem-vindo de volta.', 'Acesse o Bondmann Commercial Hub com segurança.'], signup: ['Crie sua conta.', 'Seu cadastro inicia como cliente.'], forgot: ['Esqueci minha senha', 'Informe seu e-mail e enviaremos um link para criar uma nova senha.'], reset: ['Redefinir senha', 'Escolha uma nova senha para sua conta.'] }[mode];
+  const head: [string, string] = ({ login: ['Bem-vindo de volta.', 'Acesse o Bondmann Commercial Hub com segurança.'], signup: ['Crie sua conta.', 'Seu cadastro inicia como cliente.'], forgot: ['Esqueci minha senha', 'Informe seu e-mail e enviaremos um link para criar uma nova senha.'], reset: ['Redefinir senha', 'Escolha uma nova senha para sua conta.'] } as Record<string, [string, string]>)[mode]!;
 
   return (
     <Layout>

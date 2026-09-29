@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthProvider } from "@/lib/auth/use-auth";
 import { registerServiceWorker } from "@/lib/pwa";
 import { Toaster } from "@/components/ui/sonner";
+import { themeInitScript } from "@/lib/theme";
+import { enforceRememberSession } from "@/lib/auth/auth-service";
 
 function NotFoundComponent() {
   return (
@@ -110,9 +112,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
         {children}
@@ -128,6 +131,7 @@ function RootComponent() {
 
   useEffect(() => {
     registerServiceWorker();
+    void enforceRememberSession();
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       void router.invalidate();
