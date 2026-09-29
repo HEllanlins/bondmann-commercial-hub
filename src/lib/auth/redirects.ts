@@ -1,9 +1,10 @@
 /**
  * Endereços de retorno da autenticação — centralizados.
- * Em produção (Vercel) defina VITE_SITE_URL com o domínio oficial
- * (ex.: https://hub.bondmann.com.br). Sem essa variável, usa o domínio
- * em que o site está aberto (preview / desenvolvimento).
+ * Domínio oficial de produção (Vercel): PRODUCTION_SITE_URL.
+ * Na Vercel defina VITE_SITE_URL=https://bondmann-company.vercel.app.
+ * Sem essa variável, usa o domínio em que o site está aberto (preview / dev).
  */
+export const PRODUCTION_SITE_URL = "https://bondmann-company.vercel.app";
 export function siteUrl(): string {
   const configured = (import.meta.env["VITE_SITE_URL"] as string | undefined)?.replace(/\/+$/, "");
   if (configured) return configured;
