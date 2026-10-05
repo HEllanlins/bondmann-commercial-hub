@@ -29,6 +29,13 @@
       "when": 1790555375194,
       "tag": "0003_staff_includes_funcionario",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791238751557,
+      "tag": "0004_platform_accounts_subscriptions_organizations",
+      "breakpoints": true
     }
   ]
 }
