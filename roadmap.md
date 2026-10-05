@@ -1,5 +1,10 @@
-- [ ] Public pages and catalogue linked to existing records
-- [ ] Authentication and password recovery screens
-- [ ] Client portal and staff dashboard with appropriate access
-- [ ] PWA and Vercel/Capacitor preparation
-- [ ] Verify navigation, auth where possible, responsive layout and build signal
+- [ ] Corrigir contraste dos temas e disponibilizar seletor no site público.
+- [ ] Separar entrada Cliente / Representante / Empresa e preservar autenticação.
+- [ ] Implementar planos, recursos e assinatura individual com bloqueio por estado.
+- [ ] Implementar organizações, proprietário e funcionários com aprovação e isolamento.
+- [ ] Ampliar administração: usuários, empresas, representantes, assinaturas, planos e recursos.
+- [ ] Garantir administrador irrestrito e área restrita autorizada por função.
+- [ ] Registrar solicitações de produtos com quantidade; preparar atendimento e notificações futuras.
+- [ ] Preservar módulos futuros CRM/rotas/IA, PWA e compatibilidade Vercel/Capacitor.
+- [ ] Validar navegação, temas, acessos, planos e fluxos autenticados de Hellan/Pedro quando autorizados.
+- [ ] Validar sinal automático de compilação e registrar limitações externas (pagamento, e-mail e Google/Vercel).
