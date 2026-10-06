@@ -1,0 +1,1 @@
+export function platformHead(title:string,description:string){return {meta:[{title:`${title} — Bondmann Commercial Hub`},{name:'description',content:description},{property:'og:title',content:`${title} — Bondmann Commercial Hub`},{property:'og:description',content:description},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]};}

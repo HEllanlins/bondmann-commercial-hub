@@ -10,7 +10,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-br from-aqua to-slateink text-primary-foreground shadow-lg shadow-aqua/25 hover:brightness-110",
+          "bg-primary text-primary-foreground hover:bg-primary/90",
         glass: "glass-strong text-foreground hover:bg-card/85",
         signal: "bg-bond text-accent-foreground shadow-lg shadow-bond/25 hover:brightness-105",
         outline: "border border-border bg-transparent text-foreground hover:bg-secondary",

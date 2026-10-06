@@ -52,10 +52,14 @@
   --color-chart-1: var(--aqua);
   --color-chart-2: var(--bond);
   --color-chart-3: var(--steel);
+  --color-on-image: var(--on-image);
+  --color-image-scrim: var(--image-scrim);
 }
 
 :root {
   --radius: 1rem;
+  --on-image: oklch(0.99 0 0);
+  --image-scrim: oklch(0.22 0.02 245);
 
   --frost: oklch(0.985 0.008 250);
   --slateink: oklch(0.255 0.023 245);
@@ -96,6 +100,9 @@
   --popover: oklch(0.235 0.022 248);
   --popover-foreground: oklch(0.95 0.008 250);
   --primary-foreground: oklch(0.17 0.02 248);
+  --destructive: oklch(0.74 0.16 25);
+  --success: oklch(0.76 0.13 155);
+  --accent-foreground: oklch(0.99 0.005 250);
   --secondary: oklch(0.29 0.022 248);
   --secondary-foreground: oklch(0.95 0.008 250);
   --muted: oklch(0.29 0.022 248);
@@ -122,8 +129,12 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
 @keyframes floaty {
