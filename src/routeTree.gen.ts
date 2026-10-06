@@ -16,13 +16,18 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as EmpresaRouteImport } from './routes/empresa'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PlanosRouteImport } from './routes/planos'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
+import { Route as AuthenticatedAssinaturaRouteImport } from './routes/_authenticated/assinatura'
 import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
+import { Route as AuthenticatedEmpresaPainelRouteImport } from './routes/_authenticated/empresa-painel'
+import { Route as AuthenticatedFuncionarioRouteImport } from './routes/_authenticated/funcionario'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedRepresentanteRouteImport } from './routes/_authenticated/representante'
 import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth_.reset-password'
 
@@ -60,6 +65,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanosRoute = PlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -85,16 +95,39 @@ const SolucoesRoute = SolucoesRouteImport.update({
   path: '/solucoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAssinaturaRoute = AuthenticatedAssinaturaRouteImport.update({
+  id: '/assinatura',
+  path: '/assinatura',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedClienteRoute = AuthenticatedClienteRouteImport.update({
   id: '/cliente',
   path: '/cliente',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEmpresaPainelRoute =
+  AuthenticatedEmpresaPainelRouteImport.update({
+    id: '/empresa-painel',
+    path: '/empresa-painel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFuncionarioRoute =
+  AuthenticatedFuncionarioRouteImport.update({
+    id: '/funcionario',
+    path: '/funcionario',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRepresentanteRoute =
+  AuthenticatedRepresentanteRouteImport.update({
+    id: '/representante',
+    path: '/representante',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthConfirmRoute = AuthConfirmRouteImport.update({
   id: '/auth_/confirm',
   path: '/auth/confirm',
@@ -113,13 +146,18 @@ export interface FileRoutesByFullPath {
   '/contato': typeof ContatoRoute
   '/empresa': typeof EmpresaRoute
   '/login': typeof LoginRoute
+  '/planos': typeof PlanosRoute
   '/produtos': typeof ProdutosRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/assinatura': typeof AuthenticatedAssinaturaRoute
   '/cliente': typeof AuthenticatedClienteRoute
+  '/empresa-painel': typeof AuthenticatedEmpresaPainelRoute
+  '/funcionario': typeof AuthenticatedFuncionarioRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/representante': typeof AuthenticatedRepresentanteRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
 }
@@ -130,13 +168,18 @@ export interface FileRoutesByTo {
   '/contato': typeof ContatoRoute
   '/empresa': typeof EmpresaRoute
   '/login': typeof LoginRoute
+  '/planos': typeof PlanosRoute
   '/produtos': typeof ProdutosRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/assinatura': typeof AuthenticatedAssinaturaRoute
   '/cliente': typeof AuthenticatedClienteRoute
+  '/empresa-painel': typeof AuthenticatedEmpresaPainelRoute
+  '/funcionario': typeof AuthenticatedFuncionarioRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/representante': typeof AuthenticatedRepresentanteRoute
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
 }
@@ -149,13 +192,18 @@ export interface FileRoutesById {
   '/contato': typeof ContatoRoute
   '/empresa': typeof EmpresaRoute
   '/login': typeof LoginRoute
+  '/planos': typeof PlanosRoute
   '/produtos': typeof ProdutosRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/_authenticated/assinatura': typeof AuthenticatedAssinaturaRoute
   '/_authenticated/cliente': typeof AuthenticatedClienteRoute
+  '/_authenticated/empresa-painel': typeof AuthenticatedEmpresaPainelRoute
+  '/_authenticated/funcionario': typeof AuthenticatedFuncionarioRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/_authenticated/representante': typeof AuthenticatedRepresentanteRoute
   '/auth_/confirm': typeof AuthConfirmRoute
   '/auth_/reset-password': typeof AuthResetPasswordRoute
 }
@@ -168,13 +216,18 @@ export interface FileRouteTypes {
     | '/contato'
     | '/empresa'
     | '/login'
+    | '/planos'
     | '/produtos'
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/assinatura'
     | '/cliente'
+    | '/empresa-painel'
+    | '/funcionario'
     | '/painel'
+    | '/representante'
     | '/auth/confirm'
     | '/auth/reset-password'
   fileRoutesByTo: FileRoutesByTo
@@ -185,13 +238,18 @@ export interface FileRouteTypes {
     | '/contato'
     | '/empresa'
     | '/login'
+    | '/planos'
     | '/produtos'
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/assinatura'
     | '/cliente'
+    | '/empresa-painel'
+    | '/funcionario'
     | '/painel'
+    | '/representante'
     | '/auth/confirm'
     | '/auth/reset-password'
   id:
@@ -203,13 +261,18 @@ export interface FileRouteTypes {
     | '/contato'
     | '/empresa'
     | '/login'
+    | '/planos'
     | '/produtos'
     | '/recuperar-senha'
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/_authenticated/assinatura'
     | '/_authenticated/cliente'
+    | '/_authenticated/empresa-painel'
+    | '/_authenticated/funcionario'
     | '/_authenticated/painel'
+    | '/_authenticated/representante'
     | '/auth_/confirm'
     | '/auth_/reset-password'
   fileRoutesById: FileRoutesById
@@ -222,6 +285,7 @@ export interface RootRouteChildren {
   ContatoRoute: typeof ContatoRoute
   EmpresaRoute: typeof EmpresaRoute
   LoginRoute: typeof LoginRoute
+  PlanosRoute: typeof PlanosRoute
   ProdutosRoute: typeof ProdutosRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
@@ -282,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/planos': {
+      id: '/planos'
+      path: '/planos'
+      fullPath: '/planos'
+      preLoaderRoute: typeof PlanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/produtos': {
       id: '/produtos'
       path: '/produtos'
@@ -317,6 +388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolucoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/assinatura': {
+      id: '/_authenticated/assinatura'
+      path: '/assinatura'
+      fullPath: '/assinatura'
+      preLoaderRoute: typeof AuthenticatedAssinaturaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cliente': {
       id: '/_authenticated/cliente'
       path: '/cliente'
@@ -324,11 +402,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClienteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/empresa-painel': {
+      id: '/_authenticated/empresa-painel'
+      path: '/empresa-painel'
+      fullPath: '/empresa-painel'
+      preLoaderRoute: typeof AuthenticatedEmpresaPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/funcionario': {
+      id: '/_authenticated/funcionario'
+      path: '/funcionario'
+      fullPath: '/funcionario'
+      preLoaderRoute: typeof AuthenticatedFuncionarioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/representante': {
+      id: '/_authenticated/representante'
+      path: '/representante'
+      fullPath: '/representante'
+      preLoaderRoute: typeof AuthenticatedRepresentanteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/auth_/confirm': {
@@ -349,13 +448,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAssinaturaRoute: typeof AuthenticatedAssinaturaRoute
   AuthenticatedClienteRoute: typeof AuthenticatedClienteRoute
+  AuthenticatedEmpresaPainelRoute: typeof AuthenticatedEmpresaPainelRoute
+  AuthenticatedFuncionarioRoute: typeof AuthenticatedFuncionarioRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedRepresentanteRoute: typeof AuthenticatedRepresentanteRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAssinaturaRoute: AuthenticatedAssinaturaRoute,
   AuthenticatedClienteRoute: AuthenticatedClienteRoute,
+  AuthenticatedEmpresaPainelRoute: AuthenticatedEmpresaPainelRoute,
+  AuthenticatedFuncionarioRoute: AuthenticatedFuncionarioRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedRepresentanteRoute: AuthenticatedRepresentanteRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -369,6 +476,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContatoRoute: ContatoRoute,
   EmpresaRoute: EmpresaRoute,
   LoginRoute: LoginRoute,
+  PlanosRoute: PlanosRoute,
   ProdutosRoute: ProdutosRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
