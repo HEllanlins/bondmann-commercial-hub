@@ -17,6 +17,8 @@ export async function fetchAccess(userId: string): Promise<AccessInfo> {
     ? "admin"
     : list.includes("colaborador")
       ? "colaborador"
+      : list.includes("funcionario")
+        ? "funcionario"
       : list.includes("cliente")
         ? "cliente"
         : null;

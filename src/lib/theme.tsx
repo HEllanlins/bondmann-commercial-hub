@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
+import { Button } from '@/components/ui/button';
 
 export type ThemePref = "light" | "dark" | "system";
 const KEY = "bond-theme";
@@ -44,7 +45,9 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
   return (
     <div role="radiogroup" aria-label="Tema" className={`inline-flex rounded-full border border-border bg-card/60 p-0.5 ${className}`}>
       {OPTIONS.map(({ value, label, Icon }) => (
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           key={value}
           type="button"
           role="radio"
@@ -55,7 +58,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
           className={`grid size-7 place-items-center rounded-full transition ${pref === value ? "bg-secondary text-foreground" : "text-steel hover:text-foreground"}`}
         >
           <Icon className="size-3.5" />
-        </button>
+        </Button>
       ))}
     </div>
   );
