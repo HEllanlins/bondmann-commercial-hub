@@ -9,6 +9,7 @@ import { isStaffRole } from '@/lib/auth/roles';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/lib/theme';
 import industrial from '@/assets/bondmann-industrial.jpg';
+import { accessIntent } from '@/lib/platform/data';
 
 type Mode = 'login' | 'signup' | 'forgot' | 'reset' | 'confirm';
 
@@ -24,8 +25,8 @@ function Layout({ children }: { children: ReactNode }) {
       </div>
       <div className="relative hidden lg:block">
         <img src={industrial} alt="Instalação industrial ilustrativa" className="absolute inset-0 size-full object-cover" />
-        <div className="absolute inset-0 bg-linear-to-t from-slateink to-transparent" />
-        <div className="absolute bottom-16 left-12 right-12 text-primary-foreground">
+        <div className="absolute inset-0 bg-linear-to-t from-image-scrim to-transparent" />
+        <div className="absolute bottom-16 left-12 right-12 text-on-image">
           <p className="text-xs font-bold uppercase">Bondmann Commercial Hub</p>
           <p className="mt-4 max-w-lg font-display text-3xl font-bold">Soluções, pessoas e oportunidades em conexão.</p>
         </div>
@@ -94,7 +95,9 @@ export function AuthPage({ mode }: { mode: Mode }) {
   }, [mode]);
 
   useEffect(() => {
-    if (!authLoading && session && (mode === 'login' || mode === 'signup')) void navigate({ to: isStaffRole(role) ? '/painel' : '/cliente', replace: true });
+    if (authLoading || !session || (mode !== 'login' && mode !== 'signup')) return;
+    let active=true;
+    void (async()=>{const intent=accessIntent();const {data}=await supabase.from('platform_accounts').select('kind').eq('user_id',session.user.id).maybeSingle();const kind=intent==='admin'?null:intent??data?.kind??'cliente';if(role!=='admin'&&intent&&intent!=='admin'&&data?.kind!==intent){const {error}=await supabase.rpc('platform_action',{_action:'set_account',_payload:{kind:intent}});if(error){setError('Não foi possível definir seu acesso.');return;}}if(!active)return;if(intent==='admin'){if(role==='admin')void navigate({to:'/administracao',replace:true});else setError('Área restrita aos administradores da plataforma.');return;}if(kind==='representante')void navigate({to:'/representante',replace:true});else if(kind==='proprietario')void navigate({to:'/empresa-painel',replace:true});else if(kind==='funcionario')void navigate({to:'/funcionario',replace:true});else if(!intent&&isStaffRole(role))void navigate({to:'/painel',search:{modulo:'Dashboard'},replace:true});else void navigate({to:'/cliente',replace:true});})();return()=>{active=false};
   }, [authLoading, session, role, mode, navigate]);
 
   async function submit(e: FormEvent) {
@@ -129,7 +132,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
     if (recovery === 'invalid') return <Layout><Result icon={<AlertTriangle className="size-8" />} title="Link inválido ou expirado" text="Para redefinir a senha, abra o link mais recente enviado ao seu e-mail ou solicite um novo."><Button asChild block><Link to="/recuperar-senha">Solicitar novo link</Link></Button><Button asChild variant="outline" block><Link to="/login">Voltar para o login</Link></Button></Result></Layout>;
   }
 
-  const head: [string, string] = ({ login: ['Bem-vindo de volta.', 'Acesse o Bondmann Commercial Hub com segurança.'], signup: ['Crie sua conta.', 'Seu cadastro inicia como cliente.'], forgot: ['Esqueci minha senha', 'Informe seu e-mail e enviaremos um link para criar uma nova senha.'], reset: ['Redefinir senha', 'Escolha uma nova senha para sua conta.'] } as Record<string, [string, string]>)[mode]!;
+  const head: [string, string] = ({ login: ['Bem-vindo de volta.', 'Acesse o Bondmann Commercial Hub com segurança.'], signup: ['Crie sua conta.', 'Seu cadastro inicia como cliente.'], forgot: ['Esqueci minha senha', 'Informe seu e-mail e enviaremos um link para criar uma nova senha.'], reset: ['Redefinir senha', 'Escolha uma nova senha para sua conta.'] } as Record<string, [string, string]>)[mode] ?? ['Bondmann','Acesso'];
 
   return (
     <Layout>

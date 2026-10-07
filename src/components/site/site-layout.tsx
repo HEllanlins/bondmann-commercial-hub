@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/use-auth";
 import { isStaffRole } from "@/lib/auth/roles";
 import { PLACEHOLDER, SITE } from "@/lib/site-config";
+import { ThemeToggle } from "@/lib/theme";
+import { AccessChoice } from "@/components/platform/access-choice";
+import { rememberAccess } from "@/lib/platform/data";
 
 const NAV = [
   { to: "/produtos", label: "Produtos" },
@@ -59,7 +62,8 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <AccountAction />
+          <AccessChoice />
+          <ThemeToggle className="hidden sm:inline-flex" />
           <Button
             variant="ghost"
             size="icon"
@@ -73,6 +77,7 @@ export function SiteHeader() {
       </div>
       {open ? (
         <nav className="glass-strong mx-auto mt-2 flex max-w-6xl flex-col rounded-2xl p-2 md:hidden">
+          <ThemeToggle className="sm:hidden" />
           {NAV.map((n) => (
             <Link
               key={n.to}
@@ -107,6 +112,8 @@ export function SiteFooter() {
           <p className="font-semibold text-foreground">Redes sociais</p>
           <p>Instagram: {SITE.instagram ?? PLACEHOLDER}</p>
           <p>LinkedIn: {SITE.linkedin ?? PLACEHOLDER}</p>
+          <Link to="/login" onClick={()=>rememberAccess("admin")} className="mt-4 inline-block text-xs text-steel hover:text-foreground">Área Restrita</Link>
+          <div><Link to="/planos" className="text-xs text-steel hover:text-foreground">Planos e assinaturas</Link></div>
         </div>
       </div>
       <p className="mx-auto mt-8 max-w-6xl text-xs text-steel">
@@ -119,10 +126,6 @@ export function SiteFooter() {
 export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
-        <div className="orb-a absolute -left-24 -top-24 size-96 rounded-full bg-aqua/20 blur-3xl" />
-        <div className="orb-b absolute -right-24 top-1/3 size-96 rounded-full bg-bond/15 blur-3xl" />
-      </div>
       <SiteHeader />
       <main>{children}</main>
       <SiteFooter />
