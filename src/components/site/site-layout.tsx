@@ -3,8 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth/use-auth";
-import { isStaffRole } from "@/lib/auth/roles";
 import { PLACEHOLDER, SITE } from "@/lib/site-config";
 import { ThemeToggle } from "@/lib/theme";
 import { AccessChoice } from "@/components/platform/access-choice";
@@ -24,22 +22,6 @@ export function Logo() {
       <img src="/icons/icon-192.png" alt="" className="size-8 rounded-xl" />
       <span className="font-display text-base font-bold tracking-tight">Bondmann</span>
     </Link>
-  );
-}
-
-function AccountAction() {
-  const { loading, session, role } = useAuth();
-  if (loading) return <div className="h-9 w-24" />;
-  if (!session)
-    return (
-      <Button asChild size="sm">
-        <Link to="/login">Entrar</Link>
-      </Button>
-    );
-  return (
-    <Button asChild size="sm">
-      {isStaffRole(role) ? <Link to="/painel" search={{ modulo: "Dashboard" }}>Painel</Link> : <Link to="/cliente">Minha área</Link>}
-    </Button>
   );
 }
 
