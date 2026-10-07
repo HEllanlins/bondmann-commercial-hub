@@ -1,0 +1,3 @@
+ALTER POLICY organizations_read ON public.organizations USING(owner_id=auth.uid() OR public.has_role(auth.uid(),'admin') OR EXISTS(SELECT 1 FROM public.organization_members m WHERE m.organization_id=organizations.id AND m.user_id=auth.uid()));
+CREATE OR REPLACE FUNCTION public.validate_active_subscription() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN IF NEW.status='active' AND (NEW.valid_until IS NULL OR NEW.valid_until<=now()) THEN RAISE EXCEPTION 'invalid_validity'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER validate_active_subscription BEFORE INSERT OR UPDATE ON public.platform_subscriptions FOR EACH ROW EXECUTE FUNCTION public.validate_active_subscription();
