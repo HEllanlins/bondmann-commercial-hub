@@ -1,3 +1,34 @@
+# Estado da evolução — outubro de 2026
+
+A base TanStack Start foi preservada. A entrada pública oferece Cliente, Representante e Empresa (proprietário ou funcionário). Os tipos de experiência são separados das funções de autorização. Hellan continua administrador; Pedro continua Cliente.
+
+## Entregue nesta etapa
+- Temas claro/escuro/sistema também no site público, com preferência persistente.
+- Planos centralizados no banco: Intermediário, Plus, Enterprise e Empresa. Seleção registra pedido pendente, sem simular pagamento.
+- Organizações com código de entrada, solicitação individual, aprovação/recusa/bloqueio, limite do plano e histórico.
+- Administração restrita com usuários, empresas, representantes, assinaturas, planos, recursos e solicitações.
+- Administrador não depende de assinatura; recursos sem implementação permanecem Em breve.
+- Catálogo com quantidade/unidade/observações e registro da solicitação; histórico próprio do cliente e fila comercial.
+- Gravação de plano e seus recursos em uma operação atômica, com autorização administrativa.
+
+## Verificações realmente executadas
+- Compilação automática: build OK após as alterações.
+- Navegador: escolha de acesso, planos individuais/empresariais, todas as novas áreas de Hellan, área do cliente de Pedro.
+- Pedro é redirecionado para sua área ao tentar administração ou painel interno; sem plano, não recebe recursos de representante; sem vínculo, funcionário mostra solicitação de acesso.
+- Tema escuro persistiu após recarregar; telas de cliente e planos foram verificadas em 390 × 844 e 1280 × 1800, sem rolagem horizontal da página nos testes.
+- Plano Intermediário salvo com os mesmos valores, recarregado e relido; resposta de gravação 204.
+- Nenhum erro de página apareceu nos testes executados.
+
+## Limitações e testes ainda pendentes
+- Não há produto publicado. O envio real de solicitação não foi testado; não foram inventados produtos.
+- Cadastro de organização, aprovação de funcionário e ativação/cancelamento/vencimento de assinatura ainda precisam de teste completo com dados de teste identificados. Não alterei o acesso real de Pedro nem ativei assinaturas fictícias.
+- Google completo, recebimento real de confirmação/recuperação por e-mail e deploy Vercel não foram validados nesta etapa.
+- Pagamento online, notificações de e-mail, CRM, prospecção, rotas, IA e relatórios não implementados não executam operações.
+- Vercel: manter VITE_SITE_URL=https://bondmann-company.vercel.app. Google fora da hospedagem gerenciada exige configuração OAuth própria e VITE_AUTH_OAUTH_MODE=direct; retorno público em /login.
+- PWA preservado. Android/Capacitor não compilado; deploy Vercel ainda requer validação do ambiente de hospedagem.
+
+---
+
 # Bondmann Commercial Hub
 
 PROJETO: PLATAFORMA COMERCIAL BONDMANN

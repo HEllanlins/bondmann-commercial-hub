@@ -1,10 +1,12 @@
-- [ ] Corrigir contraste dos temas e disponibilizar seletor no site público.
-- [ ] Separar entrada Cliente / Representante / Empresa e preservar autenticação.
-- [ ] Implementar planos, recursos e assinatura individual com bloqueio por estado.
-- [ ] Implementar organizações, proprietário e funcionários com aprovação e isolamento.
-- [ ] Ampliar administração: usuários, empresas, representantes, assinaturas, planos e recursos.
-- [ ] Garantir administrador irrestrito e área restrita autorizada por função.
-- [ ] Registrar solicitações de produtos com quantidade; preparar atendimento e notificações futuras.
-- [ ] Preservar módulos futuros CRM/rotas/IA, PWA e compatibilidade Vercel/Capacitor.
-- [ ] Validar navegação, temas, acessos, planos e fluxos autenticados de Hellan/Pedro quando autorizados.
-- [ ] Validar sinal automático de compilação e registrar limitações externas (pagamento, e-mail e Google/Vercel).
+- [x] Corrigir contraste dos temas e disponibilizar seletor no site público.
+- [x] Separar entrada Cliente / Representante / Empresa e preservar autenticação.
+- [x] Implementar planos, recursos e assinatura individual com bloqueio por estado.
+- [x] Implementar organizações, proprietário e funcionários com aprovação e isolamento.
+- [x] Ampliar administração: usuários, empresas, representantes, assinaturas, planos e recursos.
+- [x] Garantir administrador irrestrito e área restrita autorizada por função.
+- [x] Registrar solicitações de produtos com quantidade; preparar atendimento e notificações futuras.
+- [x] Preservar módulos futuros CRM/rotas/IA, PWA e compatibilidade Vercel/Capacitor.
+- [x] Validar navegação, temas, bloqueios e gravação de planos com Hellan/Pedro autorizados.
+- [ ] Testar envio real de solicitação: aguarda produto publicado real ou DEMO autorizado.
+- [ ] Testar ciclo empresarial/assinatura completo: aguarda dados de teste autorizados, sem alterar Pedro.
+- [x] Validar sinal automático de compilação e registrar limitações externas (pagamento, e-mail e Google/Vercel).
