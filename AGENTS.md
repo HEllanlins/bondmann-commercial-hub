@@ -16,3 +16,5 @@
 - Subscription and membership actions use authenticated database RPCs with server-enforced ownership, state and limits; menus are not the authorization boundary.
 - Feature availability is effective only when a registered implementation exists; enabling an undeveloped feature must retain the coming-soon state.
 - Plans and feature assignments are persisted in platform tables, while shared platform UI and query contracts live under src/lib/platform and src/components/platform.
+
+- Product requests use the signed-in browser client with owner-scoped RLS, and appear in the client history and staff queue; this keeps request visibility separate from future payment and email integrations.

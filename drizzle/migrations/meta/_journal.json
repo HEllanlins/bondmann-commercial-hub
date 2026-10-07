@@ -36,6 +36,13 @@
       "when": 1791238751557,
       "tag": "0004_platform_accounts_subscriptions_organizations",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791332559506,
+      "tag": "0005_correct_organization_visibility_subscription_validation",
+      "breakpoints": true
     }
   ]
 }
