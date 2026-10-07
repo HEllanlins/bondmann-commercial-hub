@@ -22,6 +22,7 @@ import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as SolucoesRouteImport } from './routes/solucoes'
+import { Route as AuthenticatedAdministracaoRouteImport } from './routes/_authenticated/administracao'
 import { Route as AuthenticatedAssinaturaRouteImport } from './routes/_authenticated/assinatura'
 import { Route as AuthenticatedClienteRouteImport } from './routes/_authenticated/cliente'
 import { Route as AuthenticatedEmpresaPainelRouteImport } from './routes/_authenticated/empresa-painel'
@@ -95,6 +96,12 @@ const SolucoesRoute = SolucoesRouteImport.update({
   path: '/solucoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdministracaoRoute =
+  AuthenticatedAdministracaoRouteImport.update({
+    id: '/administracao',
+    path: '/administracao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAssinaturaRoute = AuthenticatedAssinaturaRouteImport.update({
   id: '/assinatura',
   path: '/assinatura',
@@ -152,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/administracao': typeof AuthenticatedAdministracaoRoute
   '/assinatura': typeof AuthenticatedAssinaturaRoute
   '/cliente': typeof AuthenticatedClienteRoute
   '/empresa-painel': typeof AuthenticatedEmpresaPainelRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/administracao': typeof AuthenticatedAdministracaoRoute
   '/assinatura': typeof AuthenticatedAssinaturaRoute
   '/cliente': typeof AuthenticatedClienteRoute
   '/empresa-painel': typeof AuthenticatedEmpresaPainelRoute
@@ -198,6 +207,7 @@ export interface FileRoutesById {
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/servicos': typeof ServicosRoute
   '/solucoes': typeof SolucoesRoute
+  '/_authenticated/administracao': typeof AuthenticatedAdministracaoRoute
   '/_authenticated/assinatura': typeof AuthenticatedAssinaturaRoute
   '/_authenticated/cliente': typeof AuthenticatedClienteRoute
   '/_authenticated/empresa-painel': typeof AuthenticatedEmpresaPainelRoute
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/administracao'
     | '/assinatura'
     | '/cliente'
     | '/empresa-painel'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/administracao'
     | '/assinatura'
     | '/cliente'
     | '/empresa-painel'
@@ -267,6 +279,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/servicos'
     | '/solucoes'
+    | '/_authenticated/administracao'
     | '/_authenticated/assinatura'
     | '/_authenticated/cliente'
     | '/_authenticated/empresa-painel'
@@ -388,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolucoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/administracao': {
+      id: '/_authenticated/administracao'
+      path: '/administracao'
+      fullPath: '/administracao'
+      preLoaderRoute: typeof AuthenticatedAdministracaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assinatura': {
       id: '/_authenticated/assinatura'
       path: '/assinatura'
@@ -448,6 +468,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdministracaoRoute: typeof AuthenticatedAdministracaoRoute
   AuthenticatedAssinaturaRoute: typeof AuthenticatedAssinaturaRoute
   AuthenticatedClienteRoute: typeof AuthenticatedClienteRoute
   AuthenticatedEmpresaPainelRoute: typeof AuthenticatedEmpresaPainelRoute
@@ -457,6 +478,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdministracaoRoute: AuthenticatedAdministracaoRoute,
   AuthenticatedAssinaturaRoute: AuthenticatedAssinaturaRoute,
   AuthenticatedClienteRoute: AuthenticatedClienteRoute,
   AuthenticatedEmpresaPainelRoute: AuthenticatedEmpresaPainelRoute,
