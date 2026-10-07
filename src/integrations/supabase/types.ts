@@ -852,6 +852,10 @@ export type Database = {
         Returns: Json
       }
       platform_has_access: { Args: { _area: string }; Returns: boolean }
+      platform_save_plan: {
+        Args: { _features: string[]; _id: string; _values: Json }
+        Returns: undefined
+      }
       platform_snapshot: { Args: never; Returns: Json }
     }
     Enums: {

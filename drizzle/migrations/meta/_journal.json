@@ -43,6 +43,13 @@
       "when": 1791332559506,
       "tag": "0005_correct_organization_visibility_subscription_validation",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791332674421,
+      "tag": "0006_atomic_admin_plan_configuration",
+      "breakpoints": true
     }
   ]
 }

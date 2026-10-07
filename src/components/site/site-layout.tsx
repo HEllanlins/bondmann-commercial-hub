@@ -18,7 +18,7 @@ const NAV = [
 
 export function Logo() {
   return (
-    <Link to="/" className="flex items-center gap-2">
+    <Link to="/" className="flex shrink-0 items-center gap-2">
       <img src="/icons/icon-192.png" alt="" className="size-8 rounded-xl" />
       <span className="font-display text-base font-bold tracking-tight">Bondmann</span>
     </Link>
@@ -45,7 +45,7 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-2">
           <AccessChoice />
-          <ThemeToggle className="hidden sm:inline-flex" />
+          <div className="hidden shrink-0 sm:block"><ThemeToggle /></div>
           <Button
             variant="ghost"
             size="icon"
@@ -59,7 +59,7 @@ export function SiteHeader() {
       </div>
       {open ? (
         <nav className="glass-strong mx-auto mt-2 flex max-w-6xl flex-col rounded-2xl p-2 md:hidden">
-          <ThemeToggle className="sm:hidden" />
+          <div className="sm:hidden"><ThemeToggle /></div>
           {NAV.map((n) => (
             <Link
               key={n.to}
