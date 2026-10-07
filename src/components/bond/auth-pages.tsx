@@ -90,14 +90,14 @@ export function AuthPage({ mode }: { mode: Mode }) {
     if (mode !== 'confirm') return;
     const url = window.location.hash + window.location.search;
     if (/error/.test(url)) { setConfirmState('error'); return; }
-    const t = setTimeout(() => { void supabase.auth.getSession().then(({ data }) => setConfirmState(data.session ? 'ok' : url.includes('access_token') || url.includes('code=') ? 'ok' : 'error')); }, 1000);
+    const t = setTimeout(() => { void supabase.auth.getUser().then(({ data, error }) => setConfirmState(!error && data.user?.email_confirmed_at ? 'ok' : 'error')); }, 1000);
     return () => clearTimeout(t);
   }, [mode]);
 
   useEffect(() => {
     if (authLoading || !session || (mode !== 'login' && mode !== 'signup')) return;
     let active=true;
-    void (async()=>{const intent=accessIntent();const {data}=await supabase.from('platform_accounts').select('kind').eq('user_id',session.user.id).maybeSingle();const kind=intent==='admin'?null:intent??data?.kind??'cliente';if(role!=='admin'&&intent&&intent!=='admin'&&data?.kind!==intent){const {error}=await supabase.rpc('platform_action',{_action:'set_account',_payload:{kind:intent}});if(error){setError('Não foi possível definir seu acesso.');return;}}if(!active)return;if(intent==='admin'){if(role==='admin')void navigate({to:'/administracao',replace:true});else setError('Área restrita aos administradores da plataforma.');return;}if(kind==='representante')void navigate({to:'/representante',replace:true});else if(kind==='proprietario')void navigate({to:'/empresa-painel',replace:true});else if(kind==='funcionario')void navigate({to:'/funcionario',replace:true});else if(!intent&&isStaffRole(role))void navigate({to:'/painel',search:{modulo:'Dashboard'},replace:true});else void navigate({to:'/cliente',replace:true});})();return()=>{active=false};
+    void (async()=>{const intent=accessIntent();const {data,error:accountError}=await supabase.from('platform_accounts').select('kind').eq('user_id',session.user.id).maybeSingle();if(accountError){if(active)setError('Não foi possível consultar seu acesso. Tente novamente.');return;}const kind=intent==='admin'?null:intent??data?.kind??'cliente';if(role!=='admin'&&intent&&intent!=='admin'&&data?.kind!==intent){const {error}=await supabase.rpc('platform_action',{_action:'set_account',_payload:{kind:intent}});if(error){setError('Não foi possível definir seu acesso.');return;}}if(!active)return;if(intent==='admin'){if(role==='admin')void navigate({to:'/administracao',replace:true});else setError('Área restrita aos administradores da plataforma.');return;}if(kind==='representante')void navigate({to:'/representante',replace:true});else if(kind==='proprietario')void navigate({to:'/empresa-painel',replace:true});else if(kind==='funcionario')void navigate({to:'/funcionario',replace:true});else if(!intent&&isStaffRole(role))void navigate({to:'/painel',search:{modulo:'Dashboard'},replace:true});else void navigate({to:'/cliente',replace:true});})();return()=>{active=false};
   }, [authLoading, session, role, mode, navigate]);
 
   async function submit(e: FormEvent) {
