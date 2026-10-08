@@ -50,6 +50,13 @@
       "when": 1791332674421,
       "tag": "0006_atomic_admin_plan_configuration",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791421147030,
+      "tag": "0007_commercial_hub_mvp",
+      "breakpoints": true
     }
   ]
 }

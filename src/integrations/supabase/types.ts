@@ -107,58 +107,82 @@ export type Database = {
       }
       companies: {
         Row: {
+          activity: string | null
           address: string | null
           city: string | null
           cnpj: string | null
           created_at: string
           email: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           name: string
+          neighborhood: string | null
           notes: string | null
           owner_id: string
           phone: string | null
+          place_id: string | null
+          potential: string | null
           segment_id: string | null
+          source: string
           stage: string
           state: string | null
           trade_name: string | null
           updated_at: string
           website: string | null
+          whatsapp: string | null
         }
         Insert: {
+          activity?: string | null
           address?: string | null
           city?: string | null
           cnpj?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name: string
+          neighborhood?: string | null
           notes?: string | null
           owner_id?: string
           phone?: string | null
+          place_id?: string | null
+          potential?: string | null
           segment_id?: string | null
+          source?: string
           stage?: string
           state?: string | null
           trade_name?: string | null
           updated_at?: string
           website?: string | null
+          whatsapp?: string | null
         }
         Update: {
+          activity?: string | null
           address?: string | null
           city?: string | null
           cnpj?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
+          neighborhood?: string | null
           notes?: string | null
           owner_id?: string
           phone?: string | null
+          place_id?: string | null
+          potential?: string | null
           segment_id?: string | null
+          source?: string
           stage?: string
           state?: string | null
           trade_name?: string | null
           updated_at?: string
           website?: string | null
+          whatsapp?: string | null
         }
         Relationships: [
           {
@@ -166,6 +190,41 @@ export type Database = {
             columns: ["segment_id"]
             isOneToOne: false
             referencedRelation: "segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_events: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          kind: string
+          owner_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description: string
+          id?: string
+          kind: string
+          owner_id?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -179,6 +238,8 @@ export type Database = {
           id: string
           notes: string | null
           owner_id: string
+          priority: string
+          status: string
           title: string
         }
         Insert: {
@@ -189,6 +250,8 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_id?: string
+          priority?: string
+          status?: string
           title: string
         }
         Update: {
@@ -199,11 +262,60 @@ export type Database = {
           id?: string
           notes?: string | null
           owner_id?: string
+          priority?: string
+          status?: string
           title?: string
         }
         Relationships: [
           {
             foreignKeyName: "follow_ups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          owner_id: string
+          product_ids: string[]
+          stage: string
+          title: string
+          updated_at: string
+          value_cents: number | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          product_ids?: string[]
+          stage?: string
+          title: string
+          updated_at?: string
+          value_cents?: number | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          product_ids?: string[]
+          stage?: string
+          title?: string
+          updated_at?: string
+          value_cents?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -612,6 +724,7 @@ export type Database = {
       }
       products: {
         Row: {
+          availability: string
           category: string | null
           code: string | null
           created_at: string
@@ -622,11 +735,14 @@ export type Database = {
           image_url: string | null
           is_published: boolean
           name: string
+          notes: string | null
           segment_id: string | null
           status: string
+          technical_info: string | null
           updated_at: string
         }
         Insert: {
+          availability?: string
           category?: string | null
           code?: string | null
           created_at?: string
@@ -637,11 +753,14 @@ export type Database = {
           image_url?: string | null
           is_published?: boolean
           name: string
+          notes?: string | null
           segment_id?: string | null
           status?: string
+          technical_info?: string | null
           updated_at?: string
         }
         Update: {
+          availability?: string
           category?: string | null
           code?: string | null
           created_at?: string
@@ -652,8 +771,10 @@ export type Database = {
           image_url?: string | null
           is_published?: boolean
           name?: string
+          notes?: string | null
           segment_id?: string | null
           status?: string
+          technical_info?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -720,13 +841,94 @@ export type Database = {
         }
         Relationships: []
       }
+      route_stops: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          planned_time: string | null
+          position: number
+          route_id: string
+          status: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          planned_time?: string | null
+          position?: number
+          route_id: string
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          planned_time?: string | null
+          position?: number
+          route_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_stops_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_stops_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          owner_id: string
+          route_date: string
+          start_label: string | null
+          start_lat: number | null
+          start_lng: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id?: string
+          route_date?: string
+          start_label?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          owner_id?: string
+          route_date?: string
+          start_label?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+        }
+        Relationships: []
+      }
       segments: {
         Row: {
           created_at: string
           description: string | null
           id: string
           is_active: boolean
+          keywords: string[]
           name: string
+          needs: string[]
+          potential: string
           slug: string
           sort_order: number
         }
@@ -735,7 +937,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          keywords?: string[]
           name: string
+          needs?: string[]
+          potential?: string
           slug: string
           sort_order?: number
         }
@@ -744,7 +949,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          keywords?: string[]
           name?: string
+          needs?: string[]
+          potential?: string
           slug?: string
           sort_order?: number
         }
@@ -771,12 +979,34 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          preferences: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          preferences?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          preferences?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       visits: {
         Row: {
           company_id: string | null
           created_at: string
+          done_at: string | null
           id: string
+          next_step: string | null
+          notes: string | null
           owner_id: string
+          result: string | null
           scheduled_for: string | null
           status: string
           summary: string | null
@@ -784,8 +1014,12 @@ export type Database = {
         Insert: {
           company_id?: string | null
           created_at?: string
+          done_at?: string | null
           id?: string
+          next_step?: string | null
+          notes?: string | null
           owner_id?: string
+          result?: string | null
           scheduled_for?: string | null
           status?: string
           summary?: string | null
@@ -793,8 +1027,12 @@ export type Database = {
         Update: {
           company_id?: string | null
           created_at?: string
+          done_at?: string | null
           id?: string
+          next_step?: string | null
+          notes?: string | null
           owner_id?: string
+          result?: string | null
           scheduled_for?: string | null
           status?: string
           summary?: string | null
