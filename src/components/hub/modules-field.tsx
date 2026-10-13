@@ -13,7 +13,7 @@ import { COMPANY_STAGES, POTENTIAL, addToTodayRoute, brl, companyName, distanceK
 
 const ModLink = ({ m, children }: { m: string; children: React.ReactNode }) => <Link to="/painel" search={{ modulo: m }} className="text-xs font-semibold text-aqua">{children}</Link>;
 
-function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string }) {
+function Stat({ label, value, hint }: { label: string; value: number | string; hint?: string | undefined }) {
   return <div className="rounded-md border border-border bg-card p-4"><p className="text-xs text-steel">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p>{hint ? <p className="mt-1 text-[11px] text-steel">{hint}</p> : null}</div>;
 }
 
@@ -69,11 +69,11 @@ export function Prospeccao() {
   const [results, setResults] = useState<PlaceResult[] | null>(null); const [loading, setLoading] = useState(false); const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null); const [view, setView] = useState<'lista' | 'mapa'>('lista');
   const saved = useMemo(() => new Map(companies.filter(c => c.place_id).map(c => [c.place_id!, c])), [companies]);
-  function locate() { if (!navigator.geolocation) return toast.error('Localização indisponível neste dispositivo.'); navigator.geolocation.getCurrentPosition(p => { setOrigin({ lat: p.coords.latitude, lng: p.coords.longitude }); toast.success('Localização atual definida como referência.'); }, () => toast.error('Permissão de localização negada.')); }
+  function locate() { if (!navigator.geolocation) return void toast.error('Localização indisponível neste dispositivo.'); navigator.geolocation.getCurrentPosition(p => { setOrigin({ lat: p.coords.latitude, lng: p.coords.longitude }); toast.success('Localização atual definida como referência.'); }, () => toast.error('Permissão de localização negada.')); }
   async function run(e: React.FormEvent) {
     e.preventDefault(); const seg = segments.find(s => s.id === form.segment);
     const query = [form.query, seg ? (seg.keywords[0] ?? seg.name) : ''].filter(Boolean).join(' ');
-    if (!query.trim()) return toast.error('Informe uma palavra-chave ou um segmento.');
+    if (!query.trim()) return void toast.error('Informe uma palavra-chave ou um segmento.');
     setLoading(true); setError(null);
     try { setResults(await search({ data: { query, city: form.city, neighborhood: form.neighborhood, lat: origin?.lat ?? null, lng: origin?.lng ?? null, radiusKm: form.radiusKm } })); }
     catch (err) { setError(err instanceof Error ? err.message : 'Falha na busca.'); } finally { setLoading(false); }
@@ -84,7 +84,7 @@ export function Prospeccao() {
       const seg = segments.find(s => s.id === form.segment) ?? guessSegment(`${p.name} ${p.activity ?? ''}`, segments);
       const { data: u } = await supabase.auth.getUser(); if (!u.user) return;
       const { data, error } = await supabase.from('companies').insert({ name: p.name, address: p.address, city: p.city, neighborhood: p.neighborhood, state: p.state, phone: p.phone, website: p.website, activity: p.activity, latitude: p.lat, longitude: p.lng, place_id: p.placeId, source: 'google_maps', segment_id: seg?.id ?? null, potential: seg?.potential ?? null, stage: 'prospect', owner_id: u.user.id }).select('*').single();
-      if (error) return toast.error(error.message);
+      if (error) return void toast.error(error.message);
       c = data; await supabase.from('company_events').insert({ company_id: c.id, owner_id: u.user.id, kind: 'cadastro', description: 'Adicionada pela Prospecção (fonte: Google Maps)' });
       toast.success('Empresa adicionada à prospecção.');
     }

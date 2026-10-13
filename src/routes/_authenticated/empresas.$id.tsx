@@ -35,7 +35,7 @@ function CompanyPage() {
   async function addNote() { if (!note.trim()) return; await logEvent(id, 'observacao', note.trim()); setNote(''); await inv(); toast.success('Observação adicionada.'); }
   async function locate() {
     const addr = [c!.address, c!.neighborhood, c!.city, c!.state].filter(Boolean).join(', ');
-    if (!addr) return toast.error('O cadastro não possui endereço para localizar.');
+    if (!addr) return void toast.error('O cadastro não possui endereço para localizar.');
     setLocating(true);
     try { const r = await geocode({ data: { address: addr } }); if (!r) toast.error('Não consegui confirmar a localização.'); else { await supabase.from('companies').update({ latitude: r.lat, longitude: r.lng }).eq('id', id); await logEvent(id, 'localizacao', `Localização identificada: ${r.address}`); await inv(); toast.success('Localização encontrada.'); } }
     catch (e) { toast.error(e instanceof Error ? e.message : 'Falha'); } finally { setLocating(false); }
