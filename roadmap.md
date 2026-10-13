@@ -10,3 +10,5 @@
 - [ ] Testar envio real de solicitação: aguarda produto publicado real ou DEMO autorizado.
 - [ ] Testar ciclo empresarial/assinatura completo: aguarda dados de teste autorizados, sem alterar Pedro.
 - [x] Validar sinal automático de compilação e registrar limitações externas (pagamento, e-mail e Google/Vercel).
+- [ ] MVP comercial: prospecção, empresas, rotas, CRM, visitas, follow-ups, produtos, relatórios, IA, configurações, notificações.
+- [ ] Reconectar Google Maps Platform no novo espaço de trabalho.
