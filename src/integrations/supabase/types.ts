@@ -1072,6 +1072,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      can_use_hub: { Args: never; Returns: boolean }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean
