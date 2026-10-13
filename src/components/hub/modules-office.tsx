@@ -27,7 +27,7 @@ export function CRM() {
     e.preventDefault(); const f = new FormData(e.currentTarget); const cid = String(f.get('company_id'));
     const value = String(f.get('value') ?? '').replace(',', '.'); const pids = f.getAll('products').map(String);
     const { error } = await supabase.from('opportunities').insert({ company_id: cid, owner_id: await myId(), title: String(f.get('title')), stage: String(f.get('stage')), value_cents: value ? Math.round(Number(value) * 100) : null, product_ids: pids, notes: String(f.get('notes') ?? '') || null });
-    if (error) return toast.error(error.message);
+    if (error) return void toast.error(error.message);
     await supabase.from('companies').update({ stage: 'lead' }).eq('id', cid).eq('stage', 'prospect');
     await logEvent(cid, 'crm', `Oportunidade criada: ${String(f.get('title'))}`); toast.success('Oportunidade criada.'); setOpen(false); await inv();
   }
@@ -78,7 +78,7 @@ export function Produtos() {
     e.preventDefault(); const f = new FormData(e.currentTarget); const v = (k: string) => String(f.get(k) ?? '').trim() || null;
     const row = { name: v('name') ?? '', code: v('code'), category: v('category'), description: v('description'), segment_id: v('segment_id'), availability: v('availability') ?? 'sob_consulta', technical_info: v('technical_info'), notes: v('notes'), image_url: v('image_url'), features: (v('features') ?? '').split('\n').map(s => s.trim()).filter(Boolean), status: v('status') ?? 'ativo', is_published: f.get('is_published') === 'on' };
     const r = edit === 'new' ? await supabase.from('products').insert(row) : await supabase.from('products').update({ ...row, updated_at: new Date().toISOString() }).eq('id', (edit as Product).id);
-    if (r.error) return toast.error(r.error.message); toast.success('Produto salvo.'); setEdit(null); await inv();
+    if (r.error) return void toast.error(r.error.message); toast.success('Produto salvo.'); setEdit(null); await inv();
   }
   async function quick(p: Product, patch: Partial<Product>) { const { error } = await supabase.from('products').update(patch).eq('id', p.id); if (error) toast.error(error.message); await inv(); }
   const cur = edit && edit !== 'new' ? edit : null;
@@ -132,7 +132,7 @@ export function Configuracoes() {
   if (prefs === null && user) void supabase.from('user_settings').select('preferences').eq('user_id', user.id).maybeSingle().then(({ data }) => setPrefs((data?.preferences as Record<string, unknown>) ?? {}));
   async function saveProfile(e: React.FormEvent<HTMLFormElement>) { e.preventDefault(); if (!user) return; setSaving(true); const f = new FormData(e.currentTarget); const { error } = await supabase.from('profiles').update({ full_name: String(f.get('full_name') ?? '') || null, phone: String(f.get('phone') ?? '') || null, avatar_url: String(f.get('avatar_url') ?? '') || null }).eq('id', user.id); setSaving(false); if (error) toast.error(error.message); else toast.success('Perfil atualizado.'); }
   async function savePrefs(e: React.FormEvent<HTMLFormElement>) { e.preventDefault(); if (!user) return; const f = new FormData(e.currentTarget); const p = { language: f.get('language'), notify: ['visitas', 'followups', 'oportunidades', 'solicitacoes', 'mensagens'].filter(k => f.get(`n_${k}`) === 'on'), region: f.get('region'), segments: f.getAll('segments'), radiusKm: Number(f.get('radius')) || 10, workStart: f.get('workStart'), workEnd: f.get('workEnd') }; const { error } = await supabase.from('user_settings').upsert({ user_id: user.id, preferences: p as never, updated_at: new Date().toISOString() }); if (error) toast.error(error.message); else { setPrefs(p); toast.success('Preferências salvas.'); } }
-  async function changePassword(e: React.FormEvent<HTMLFormElement>) { e.preventDefault(); const f = new FormData(e.currentTarget); const pw = String(f.get('pw')); if (pw.length < 8) return toast.error('A senha deve ter pelo menos 8 caracteres.'); if (pw !== String(f.get('pw2'))) return toast.error('As senhas não conferem.'); const { error } = await supabase.auth.updateUser({ password: pw }); if (error) toast.error(error.message); else { toast.success('Senha alterada.'); e.currentTarget.reset(); } }
+  async function changePassword(e: React.FormEvent<HTMLFormElement>) { e.preventDefault(); const f = new FormData(e.currentTarget); const pw = String(f.get('pw')); if (pw.length < 8) return void toast.error('A senha deve ter pelo menos 8 caracteres.'); if (pw !== String(f.get('pw2'))) return void toast.error('As senhas não conferem.'); const { error } = await supabase.auth.updateUser({ password: pw }); if (error) toast.error(error.message); else { toast.success('Senha alterada.'); e.currentTarget.reset(); } }
   const p = (prefs ?? {}) as { language?: string; notify?: string[]; region?: string; segments?: string[]; radiusKm?: number; workStart?: string; workEnd?: string };
   const [profile, setProfile] = useState<{ phone: string | null; avatar_url: string | null } | null>(null);
   if (profile === null && user) void supabase.from('profiles').select('phone,avatar_url').eq('id', user.id).maybeSingle().then(({ data }) => setProfile(data ?? { phone: null, avatar_url: null }));

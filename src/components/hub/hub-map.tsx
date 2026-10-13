@@ -36,7 +36,7 @@ function decode(enc: string) {
 }
 
 /** Mapa Google (somente navegador). Credential-bearing previews mostram aviso sem chamar o Google. */
-export function HubMap({ points, onSelect, polyline, className = 'h-80' }: { points: MapPoint[]; onSelect?: (id: string) => void; polyline?: string | null; className?: string }) {
+export function HubMap({ points, onSelect, polyline, className = 'h-80' }: { points: MapPoint[]; onSelect?: ((id: string) => void) | undefined; polyline?: string | null | undefined; className?: string }) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
   const overlays = useRef<any[]>([]);
