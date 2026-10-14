@@ -16,7 +16,7 @@ import { geocodeAddress } from '@/lib/hub/maps.functions';
 import { COMPANY_STAGES, PIPELINE, VISIT_RESULTS, addToTodayRoute, brl, companyName, followStatus, FOLLOW_LABELS, fmtDate, logEvent, navUrl, useCompanies, useFollowUps, useInvalidateHub, useOpportunities, useSegments, useVisits } from '@/lib/hub/data';
 
 export const Route = createFileRoute('/_authenticated/empresas/$id')({
-  beforeLoad: async ({ context }) => { const a = await fetchAccess(context.user.id); if (!isStaffRole(a.role)) throw redirect({ to: '/cliente' }); },
+  beforeLoad: async ({ context }) => { const a = await fetchAccess(context.user.id); if (!isStaffRole(a.role)) { const { data } = await supabase.rpc('can_use_hub'); if (!data) throw redirect({ to: '/cliente' }); } },
   head: () => ({ meta: [{ title: 'Empresa — Bondmann Commercial Hub' }, { name: 'description', content: 'Ficha completa da empresa no Hub Comercial Bondmann.' }, { property: 'og:title', content: 'Empresa — Bondmann Commercial Hub' }, { property: 'og:description', content: 'Ficha completa da empresa no Hub Comercial Bondmann.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }, { name: 'robots', content: 'noindex' }] }),
   component: CompanyPage,
 });

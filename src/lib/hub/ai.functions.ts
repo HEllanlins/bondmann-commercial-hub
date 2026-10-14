@@ -18,8 +18,8 @@ export const askHub = createServerFn({ method: 'POST' })
   })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
-    const { data: staff } = await sb.rpc('is_staff', { _user_id: context.userId });
-    if (!staff) throw new Error('Acesso restrito à equipe comercial.');
+    const { data: staff } = await sb.rpc('can_use_hub');
+    if (!staff) throw new Error('Acesso restrito a usuários com o Hub Comercial liberado.');
     const now = new Date().toISOString();
     const [companies, visits, fus, opps, products, segments, routes] = await Promise.all([
       sb.from('companies').select('id,name,trade_name,stage,city,neighborhood,address,phone,whatsapp,segment_id,potential,latitude').order('updated_at', { ascending: false }).limit(80),
@@ -42,16 +42,14 @@ export const askHub = createServerFn({ method: 'POST' })
       segmentos_e_necessidades_inferidas: (segments.data ?? []).map(s => ({ nome: s.name, necessidades: s.needs })),
       rotas: (routes.data ?? []).map(r => ({ data: r.route_date, paradas: (r.route_stops ?? []).sort((a, b) => a.position - b.position).map(s => ({ empresa: cname.get(s.company_id) ?? '—', status: s.status })) })),
     };
+    const input = [{ role: 'system', content: `${GUIDE}\n\nCONTEXTO (JSON):\n${JSON.stringify(ctx)}` }, ...data.messages];
+    const openai = process.env['OPENAI_API_KEY'];
     const apiKey = process.env['LOVABLE_API_KEY'];
-    if (!apiKey) throw new Error('IA não configurada.');
-    const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': apiKey, 'X-Lovable-AIG-SDK': 'fetch' },
-      body: JSON.stringify({
-        model: 'openai/gpt-6-astra', stream: true, store: false, reasoning: { effort: 'low' },
-        input: [{ role: 'system', content: `${GUIDE}\n\nCONTEXTO (JSON):\n${JSON.stringify(ctx)}` }, ...data.messages],
-      }),
-    });
+    if (!openai && !apiKey) throw new Error('IA não configurada. Defina OPENAI_API_KEY.');
+    // Na Lovable usa a IA gerenciada; fora dela (Vercel) usa OPENAI_API_KEY + OPENAI_MODEL.
+    const res = openai
+      ? await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openai}` }, body: JSON.stringify({ model: process.env['OPENAI_MODEL'] || 'gpt-4.1-mini', stream: true, store: false, input }) })
+      : await fetch('https://ai.gateway.lovable.dev/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': apiKey!, 'X-Lovable-AIG-SDK': 'fetch' }, body: JSON.stringify({ model: 'openai/gpt-6-astra', stream: true, store: false, reasoning: { effort: 'low' }, input }) });
     if (!res.ok || !res.body) {
       const t = await res.text();
       console.error(`AI gateway [${res.status}]: ${t}`);

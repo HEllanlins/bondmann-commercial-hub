@@ -3,28 +3,35 @@ import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 
 const GATEWAY_URL = 'https://connector-gateway.lovable.dev/google_maps';
 
-type Ctx = { supabase: { rpc: (fn: 'is_staff', args: { _user_id: string }) => PromiseLike<{ data: boolean | null }> }; userId: string };
+type Ctx = { supabase: { rpc: (fn: 'can_use_hub')  => PromiseLike<{ data: boolean | null }> }; userId: string };
 
 async function ensureStaff(context: Ctx) {
-  const { data } = await context.supabase.rpc('is_staff', { _user_id: context.userId });
-  if (!data) throw new Error('Acesso restrito à equipe comercial.');
+  const { data } = await context.supabase.rpc('can_use_hub');
+  if (!data) throw new Error('Acesso restrito a usuários com o Hub Comercial liberado.');
 }
 
-function keys() {
-  const lovable = process.env['LOVABLE_API_KEY'];
-  const maps = process.env['GOOGLE_MAPS_API_KEY'];
-  if (!lovable || !maps) throw new Error('Integração de mapas não configurada (GOOGLE_MAPS_API_KEY / LOVABLE_API_KEY).');
-  return { Authorization: `Bearer ${lovable}`, 'X-Connection-Api-Key': maps };
-}
-
+/** Na Lovable usa o gateway gerenciado; fora dela (Vercel) usa GOOGLE_MAPS_SERVER_KEY direto no Google. */
 async function gateway(path: string, init: RequestInit & { fieldMask?: string }) {
-  const headers: Record<string, string> = { ...keys(), 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (init.fieldMask) headers['X-Goog-FieldMask'] = init.fieldMask;
-  const res = await fetch(`${GATEWAY_URL}${path}`, { ...init, headers });
+  const own = process.env['GOOGLE_MAPS_SERVER_KEY'];
+  let url: string;
+  if (own) {
+    const m = path.match(/^\/(places|routes)\/(.*)$/);
+    if (m) { url = `https://${m[1]}.googleapis.com/${m[2]}`; headers['X-Goog-Api-Key'] = own; }
+    else url = `https://maps.googleapis.com${path}${path.includes('?') ? '&' : '?'}key=${own}`;
+  } else {
+    const lovable = process.env['LOVABLE_API_KEY'];
+    const maps = process.env['GOOGLE_MAPS_API_KEY'];
+    if (!lovable || !maps) throw new Error('Integração de mapas não configurada. Defina GOOGLE_MAPS_SERVER_KEY.');
+    headers['Authorization'] = `Bearer ${lovable}`; headers['X-Connection-Api-Key'] = maps;
+    url = `${GATEWAY_URL}${path}`;
+  }
+  const res = await fetch(url, { ...init, headers });
   if (!res.ok) {
     const body = await res.text();
-    console.error(`Maps gateway [${res.status}]: ${body}`);
-    if (res.status === 403) throw new Error('O serviço de mapas recusou a solicitação (403). Verifique as permissões da chave Google.');
+    console.error(`Maps [${res.status}]: ${body}`);
+    if (res.status === 403) throw new Error('O Google recusou a solicitação (403). Verifique se Places, Geocoding e Routes estão ativados na chave.');
     throw new Error(`Serviço de mapas indisponível [${res.status}].`);
   }
   return res.json();

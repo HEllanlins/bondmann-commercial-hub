@@ -1593,3 +1593,18 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Variáveis de ambiente na Vercel (Settings → Environment Variables)
+
+| Nome | Para que serve | Onde obter |
+|---|---|---|
+| `VITE_SITE_URL` | Retorno de login, confirmação e Google | `https://bondmann-company.vercel.app` |
+| `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` / `VITE_SUPABASE_PROJECT_ID` | Banco e login no navegador | Mesmos valores do arquivo `.env` do projeto |
+| `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` | Banco nas funções do servidor | Mesmos valores do `.env` |
+| `GOOGLE_MAPS_SERVER_KEY` (secreta) | Busca de empresas, localização e rotas | Google Cloud → chave com Places API (New), Geocoding API e Routes API; restrição por API, sem restrição de site |
+| `VITE_GOOGLE_MAPS_BROWSER_KEY` | Mapa visual | Google Cloud → chave com Maps JavaScript API, restrita a `https://bondmann-company.vercel.app/*` |
+| `OPENAI_API_KEY` (secreta) | Assistente IA | platform.openai.com → API keys |
+| `OPENAI_MODEL` (opcional) | Modelo da IA | ex.: `gpt-4.1-mini` |
+| `VITE_AUTH_OAUTH_MODE=direct` | Login Google fora da Lovable | Requer cliente OAuth Google próprio configurado no login |
+
+Sem essas chaves, as telas funcionam mas a busca, o mapa e a IA mostram mensagem de configuração.

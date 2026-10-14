@@ -12,4 +12,8 @@
 - [x] Validar sinal automático de compilação e registrar limitações externas (pagamento, e-mail e Google/Vercel).
 - [x] MVP comercial: prospecção, empresas, rotas, CRM, visitas, follow-ups, produtos, relatórios, IA, configurações, notificações.
 - [x] Reconectar Google Maps Platform no novo espaço de trabalho.
-- [ ] Testar fluxo completo logado como Hellan: aguarda login na prévia.
+- [ ] Testar fluxo completo (inclui representante) logado como Hellan: aguarda login na prévia.
+- [x] Liberar Hub Comercial a representantes/empresas com acesso ativo (dados próprios).
+- [x] Login Google ativo; elan.lins@gmail.com vira admin ao entrar.
+- [x] Fallback Vercel para mapas e IA via variáveis próprias; documentado no README.
+- [ ] Cadastrar empresas reais da Bondmann: aguarda lista oficial do usuário.
