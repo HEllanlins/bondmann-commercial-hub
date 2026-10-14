@@ -8,7 +8,7 @@ let loader: Promise<void> | null = null;
 function loadMaps() {
   if (window.google?.maps?.Map) return Promise.resolve();
   if (loader) return loader;
-  const key = import.meta.env['VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY'];
+  const key = import.meta.env['VITE_GOOGLE_MAPS_BROWSER_KEY'] || import.meta.env['VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY'];
   const channel = import.meta.env['VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID'] ?? '';
   if (!key) return Promise.reject(new Error('missing-key'));
   loader = new Promise((resolve, reject) => {
