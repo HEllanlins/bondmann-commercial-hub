@@ -119,6 +119,7 @@ export type Database = {
           name: string
           neighborhood: string | null
           notes: string | null
+          organization_id: string | null
           owner_id: string
           phone: string | null
           place_id: string | null
@@ -145,6 +146,7 @@ export type Database = {
           name: string
           neighborhood?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           phone?: string | null
           place_id?: string | null
@@ -171,6 +173,7 @@ export type Database = {
           name?: string
           neighborhood?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           phone?: string | null
           place_id?: string | null
@@ -185,6 +188,13 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "companies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "companies_segment_id_fkey"
             columns: ["segment_id"]
@@ -237,6 +247,7 @@ export type Database = {
           due_at: string | null
           id: string
           notes: string | null
+          organization_id: string | null
           owner_id: string
           priority: string
           status: string
@@ -249,6 +260,7 @@ export type Database = {
           due_at?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           priority?: string
           status?: string
@@ -261,6 +273,7 @@ export type Database = {
           due_at?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           priority?: string
           status?: string
@@ -274,6 +287,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "follow_ups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       opportunities: {
@@ -282,6 +302,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          organization_id: string | null
           owner_id: string
           product_ids: string[]
           stage: string
@@ -294,6 +315,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           product_ids?: string[]
           stage?: string
@@ -306,6 +328,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           product_ids?: string[]
           stage?: string
@@ -321,6 +344,54 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "opportunities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_invites: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_by: string
+          organization_id: string
+          permissions: string[]
+          role: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string
+          organization_id: string
+          permissions?: string[]
+          role?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          permissions?: string[]
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       organization_members: {
@@ -328,6 +399,8 @@ export type Database = {
           created_at: string
           id: string
           organization_id: string
+          permissions: string[]
+          role: string
           status: string
           user_id: string
         }
@@ -335,6 +408,8 @@ export type Database = {
           created_at?: string
           id?: string
           organization_id: string
+          permissions?: string[]
+          role?: string
           status?: string
           user_id: string
         }
@@ -342,6 +417,8 @@ export type Database = {
           created_at?: string
           id?: string
           organization_id?: string
+          permissions?: string[]
+          role?: string
           status?: string
           user_id?: string
         }
@@ -542,10 +619,13 @@ export type Database = {
           benefits: string[]
           created_at: string
           description: string
+          discount_percent: number
           id: string
           max_users: number
           name: string
+          offer_active: boolean
           price_cents: number | null
+          trial_days: number
         }
         Insert: {
           active?: boolean
@@ -553,10 +633,13 @@ export type Database = {
           benefits?: string[]
           created_at?: string
           description?: string
+          discount_percent?: number
           id: string
           max_users?: number
           name: string
+          offer_active?: boolean
           price_cents?: number | null
+          trial_days?: number
         }
         Update: {
           active?: boolean
@@ -564,10 +647,13 @@ export type Database = {
           benefits?: string[]
           created_at?: string
           description?: string
+          discount_percent?: number
           id?: string
           max_users?: number
           name?: string
+          offer_active?: boolean
           price_cents?: number | null
+          trial_days?: number
         }
         Relationships: []
       }
@@ -588,35 +674,53 @@ export type Database = {
       }
       platform_subscriptions: {
         Row: {
+          admin_notes: string | null
           created_at: string
           custom_price_cents: number | null
           discount_percent: number
+          granted_by: string | null
           id: string
           organization_id: string | null
           plan_id: string
+          renews_at: string | null
+          started_at: string | null
           status: string
+          trial_ends_at: string | null
+          updated_at: string
           user_id: string | null
           valid_until: string | null
         }
         Insert: {
+          admin_notes?: string | null
           created_at?: string
           custom_price_cents?: number | null
           discount_percent?: number
+          granted_by?: string | null
           id?: string
           organization_id?: string | null
           plan_id: string
+          renews_at?: string | null
+          started_at?: string | null
           status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
           user_id?: string | null
           valid_until?: string | null
         }
         Update: {
+          admin_notes?: string | null
           created_at?: string
           custom_price_cents?: number | null
           discount_percent?: number
+          granted_by?: string | null
           id?: string
           organization_id?: string | null
           plan_id?: string
+          renews_at?: string | null
+          started_at?: string | null
           status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
           user_id?: string | null
           valid_until?: string | null
         }
@@ -891,6 +995,7 @@ export type Database = {
           created_at: string
           id: string
           name: string | null
+          organization_id: string | null
           owner_id: string
           route_date: string
           start_label: string | null
@@ -901,6 +1006,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string | null
+          organization_id?: string | null
           owner_id?: string
           route_date?: string
           start_label?: string | null
@@ -911,13 +1017,22 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string | null
+          organization_id?: string | null
           owner_id?: string
           route_date?: string
           start_label?: string | null
           start_lat?: number | null
           start_lng?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "routes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       segments: {
         Row: {
@@ -957,6 +1072,154 @@ export type Database = {
           sort_order?: number
         }
         Relationships: []
+      }
+      subscription_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          method: string | null
+          notes: string | null
+          paid_at: string
+          recorded_by: string
+          subscription_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+          recorded_by?: string
+          subscription_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_at?: string
+          recorded_by?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "platform_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_requests: {
+        Row: {
+          company_name: string | null
+          contract_type: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          notes: string | null
+          organization_id: string | null
+          phone: string | null
+          plan_id: string
+          price_cents_snapshot: number | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          seats: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          contract_type: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          plan_id: string
+          price_cents_snapshot?: number | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seats?: number | null
+          status?: string
+          user_id?: string
+        }
+        Update: {
+          company_name?: string | null
+          contract_type?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          plan_id?: string
+          price_cents_snapshot?: number | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seats?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_requests_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "platform_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trial_grants: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          organization_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          organization_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          organization_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_grants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1005,6 +1268,7 @@ export type Database = {
           id: string
           next_step: string | null
           notes: string | null
+          organization_id: string | null
           owner_id: string
           result: string | null
           scheduled_for: string | null
@@ -1018,6 +1282,7 @@ export type Database = {
           id?: string
           next_step?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           result?: string | null
           scheduled_for?: string | null
@@ -1031,6 +1296,7 @@ export type Database = {
           id?: string
           next_step?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string
           result?: string | null
           scheduled_for?: string | null
@@ -1043,6 +1309,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1072,7 +1345,39 @@ export type Database = {
         }
         Returns: undefined
       }
+      can_use_feature: { Args: { _key: string }; Returns: boolean }
       can_use_hub: { Args: never; Returns: boolean }
+      can_view_owner: { Args: { _owner: string }; Returns: boolean }
+      commercial_action: {
+        Args: { _action: string; _payload?: Json }
+        Returns: Json
+      }
+      current_subscription: {
+        Args: never
+        Returns: {
+          admin_notes: string | null
+          created_at: string
+          custom_price_cents: number | null
+          discount_percent: number
+          granted_by: string | null
+          id: string
+          organization_id: string | null
+          plan_id: string
+          renews_at: string | null
+          started_at: string | null
+          status: string
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string | null
+          valid_until: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "platform_subscriptions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean
@@ -1084,7 +1389,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      hub_context: { Args: never; Returns: Json }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      my_org: { Args: never; Returns: string }
+      org_manager: { Args: { _org: string }; Returns: boolean }
       owns_organization: { Args: { _id: string }; Returns: boolean }
       platform_action: {
         Args: { _action: string; _payload?: Json }
