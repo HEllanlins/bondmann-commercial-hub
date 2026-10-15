@@ -64,6 +64,13 @@
       "when": 1791908948134,
       "tag": "0008_hub_access_for_subscribers",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792023414706,
+      "tag": "0009_subscriptions_teams_features",
+      "breakpoints": true
     }
   ]
 }
