@@ -18,8 +18,8 @@ export const askHub = createServerFn({ method: 'POST' })
   })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
-    const { data: staff } = await sb.rpc('can_use_hub');
-    if (!staff) throw new Error('Acesso restrito a usuários com o Hub Comercial liberado.');
+    const { data: staff } = await sb.rpc('can_use_feature', { _key: 'ia' });
+    if (!staff) throw new Error('O assistente de IA não está incluído no seu plano.');
     const now = new Date().toISOString();
     const [companies, visits, fus, opps, products, segments, routes] = await Promise.all([
       sb.from('companies').select('id,name,trade_name,stage,city,neighborhood,address,phone,whatsapp,segment_id,potential,latitude').order('updated_at', { ascending: false }).limit(80),
