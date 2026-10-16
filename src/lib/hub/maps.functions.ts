@@ -3,11 +3,11 @@ import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 
 const GATEWAY_URL = 'https://connector-gateway.lovable.dev/google_maps';
 
-type Ctx = { supabase: { rpc: (fn: 'can_use_hub')  => PromiseLike<{ data: boolean | null }> }; userId: string };
+type Ctx = { supabase: { rpc: (fn: 'can_use_feature', args: { _key: string }) => PromiseLike<{ data: boolean | null }> }; userId: string };
 
 async function ensureStaff(context: Ctx) {
-  const { data } = await context.supabase.rpc('can_use_hub');
-  if (!data) throw new Error('Acesso restrito a usuários com o Hub Comercial liberado.');
+  for (const k of ['prospeccao', 'mapas', 'rotas', 'clientes']) { const { data } = await context.supabase.rpc('can_use_feature', { _key: k }); if (data) return; }
+  throw new Error('Os recursos de mapas não estão incluídos no seu plano.');
 }
 
 /** Na Lovable usa o gateway gerenciado; fora dela (Vercel) usa GOOGLE_MAPS_SERVER_KEY direto no Google. */
