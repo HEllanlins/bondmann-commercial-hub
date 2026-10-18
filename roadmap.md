@@ -17,3 +17,8 @@
 - [x] Login Google ativo; elan.lins@gmail.com vira admin ao entrar.
 - [x] Fallback Vercel para mapas e IA via variáveis próprias; documentado no README.
 - [ ] Cadastrar empresas reais da Bondmann: aguarda lista oficial do usuário.
+- [x] Solicitação de assinatura, teste grátis, gestão de assinaturas/pagamentos na Área Restrita.
+- [x] Equipes: convites, papéis, permissões, vagas; bloqueio por recurso no banco e na tela.
+- [ ] Testar equipe com dois usuários não internos: aguarda conta de teste autorizada.
+- [ ] E-mails automáticos (pedido, convite, vencimento): aguarda domínio de envio.
+- [ ] Stripe: aguarda decisão de ativar pagamentos online.
