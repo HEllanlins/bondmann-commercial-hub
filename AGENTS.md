@@ -19,3 +19,4 @@
 
 - Product requests use the signed-in browser client with owner-scoped RLS, and appear in the client history and staff queue; this keeps request visibility separate from future payment and email integrations.
 - Hub comercial modules live in src/components/hub and src/lib/hub; Maps/AI calls go through authenticated server functions so keys stay server-side and RLS scopes AI context.
+- Subscriptions, trials, teams and per-feature gating run through commercial_action/can_use_feature/can_view_owner RPCs so plan rules are enforced in RLS, not only in menus.
