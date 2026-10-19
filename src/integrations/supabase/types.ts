@@ -617,6 +617,7 @@ export type Database = {
           active: boolean
           audience: string
           benefits: string[]
+          billing_interval: string
           created_at: string
           description: string
           discount_percent: number
@@ -625,12 +626,15 @@ export type Database = {
           name: string
           offer_active: boolean
           price_cents: number | null
+          stripe_price_id: string | null
+          stripe_product_id: string | null
           trial_days: number
         }
         Insert: {
           active?: boolean
           audience: string
           benefits?: string[]
+          billing_interval?: string
           created_at?: string
           description?: string
           discount_percent?: number
@@ -639,12 +643,15 @@ export type Database = {
           name: string
           offer_active?: boolean
           price_cents?: number | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
           trial_days?: number
         }
         Update: {
           active?: boolean
           audience?: string
           benefits?: string[]
+          billing_interval?: string
           created_at?: string
           description?: string
           discount_percent?: number
@@ -653,6 +660,8 @@ export type Database = {
           name?: string
           offer_active?: boolean
           price_cents?: number | null
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
           trial_days?: number
         }
         Relationships: []
@@ -675,16 +684,21 @@ export type Database = {
       platform_subscriptions: {
         Row: {
           admin_notes: string | null
+          blocked_reason: string | null
           created_at: string
           custom_price_cents: number | null
           discount_percent: number
           granted_by: string | null
           id: string
+          last_payment_at: string | null
           organization_id: string | null
+          payment_method: string | null
           plan_id: string
           renews_at: string | null
           started_at: string | null
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           trial_ends_at: string | null
           updated_at: string
           user_id: string | null
@@ -692,16 +706,21 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          blocked_reason?: string | null
           created_at?: string
           custom_price_cents?: number | null
           discount_percent?: number
           granted_by?: string | null
           id?: string
+          last_payment_at?: string | null
           organization_id?: string | null
+          payment_method?: string | null
           plan_id: string
           renews_at?: string | null
           started_at?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -709,16 +728,21 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          blocked_reason?: string | null
           created_at?: string
           custom_price_cents?: number | null
           discount_percent?: number
           granted_by?: string | null
           id?: string
+          last_payment_at?: string | null
           organization_id?: string | null
+          payment_method?: string | null
           plan_id?: string
           renews_at?: string | null
           started_at?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -1073,6 +1097,24 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_events: {
+        Row: {
+          created_at: string
+          id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          type?: string
+        }
+        Relationships: []
+      }
       subscription_payments: {
         Row: {
           amount_cents: number
@@ -1082,6 +1124,8 @@ export type Database = {
           notes: string | null
           paid_at: string
           recorded_by: string
+          status: string
+          stripe_ref: string | null
           subscription_id: string
         }
         Insert: {
@@ -1092,6 +1136,8 @@ export type Database = {
           notes?: string | null
           paid_at?: string
           recorded_by?: string
+          status?: string
+          stripe_ref?: string | null
           subscription_id: string
         }
         Update: {
@@ -1102,6 +1148,8 @@ export type Database = {
           notes?: string | null
           paid_at?: string
           recorded_by?: string
+          status?: string
+          stripe_ref?: string | null
           subscription_id?: string
         }
         Relationships: [
@@ -1220,6 +1268,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          dedupe_key: string | null
+          email_sent_at: string | null
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          dedupe_key?: string | null
+          email_sent_at?: string | null
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          dedupe_key?: string | null
+          email_sent_at?: string | null
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -1356,16 +1443,21 @@ export type Database = {
         Args: never
         Returns: {
           admin_notes: string | null
+          blocked_reason: string | null
           created_at: string
           custom_price_cents: number | null
           discount_percent: number
           granted_by: string | null
           id: string
+          last_payment_at: string | null
           organization_id: string | null
+          payment_method: string | null
           plan_id: string
           renews_at: string | null
           started_at: string | null
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           trial_ends_at: string | null
           updated_at: string
           user_id: string | null
