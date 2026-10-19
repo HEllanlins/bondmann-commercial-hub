@@ -32,6 +32,8 @@ import { Route as AuthenticatedRepresentanteRouteImport } from './routes/_authen
 import { Route as AuthConfirmRouteImport } from './routes/auth_.confirm'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth_.reset-password'
 import { Route as AuthenticatedEmpresasIdRouteImport } from './routes/_authenticated/empresas.$id'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as ApiPublicCronBillingRemindersRouteImport } from './routes/api/public/cron/billing-reminders'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -151,6 +153,17 @@ const AuthenticatedEmpresasIdRoute = AuthenticatedEmpresasIdRouteImport.update({
   path: '/empresas/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCronBillingRemindersRoute =
+  ApiPublicCronBillingRemindersRouteImport.update({
+    id: '/api/public/cron/billing-reminders',
+    path: '/api/public/cron/billing-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -175,6 +188,8 @@ export interface FileRoutesByFullPath {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/empresas/$id': typeof AuthenticatedEmpresasIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/cron/billing-reminders': typeof ApiPublicCronBillingRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -199,6 +214,8 @@ export interface FileRoutesByTo {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/empresas/$id': typeof AuthenticatedEmpresasIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/cron/billing-reminders': typeof ApiPublicCronBillingRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -225,6 +242,8 @@ export interface FileRoutesById {
   '/auth_/confirm': typeof AuthConfirmRoute
   '/auth_/reset-password': typeof AuthResetPasswordRoute
   '/_authenticated/empresas/$id': typeof AuthenticatedEmpresasIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/cron/billing-reminders': typeof ApiPublicCronBillingRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -251,6 +270,8 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/reset-password'
     | '/empresas/$id'
+    | '/api/public/stripe-webhook'
+    | '/api/public/cron/billing-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -275,6 +296,8 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/reset-password'
     | '/empresas/$id'
+    | '/api/public/stripe-webhook'
+    | '/api/public/cron/billing-reminders'
   id:
     | '__root__'
     | '/'
@@ -300,6 +323,8 @@ export interface FileRouteTypes {
     | '/auth_/confirm'
     | '/auth_/reset-password'
     | '/_authenticated/empresas/$id'
+    | '/api/public/stripe-webhook'
+    | '/api/public/cron/billing-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -318,6 +343,8 @@ export interface RootRouteChildren {
   SolucoesRoute: typeof SolucoesRoute
   AuthConfirmRoute: typeof AuthConfirmRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
+  ApiPublicCronBillingRemindersRoute: typeof ApiPublicCronBillingRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -483,6 +510,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEmpresasIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron/billing-reminders': {
+      id: '/api/public/cron/billing-reminders'
+      path: '/api/public/cron/billing-reminders'
+      fullPath: '/api/public/cron/billing-reminders'
+      preLoaderRoute: typeof ApiPublicCronBillingRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -527,6 +568,8 @@ const rootRouteChildren: RootRouteChildren = {
   SolucoesRoute: SolucoesRoute,
   AuthConfirmRoute: AuthConfirmRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
+  ApiPublicCronBillingRemindersRoute: ApiPublicCronBillingRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -71,6 +71,13 @@
       "when": 1792023414706,
       "tag": "0009_subscriptions_teams_features",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792377591838,
+      "tag": "0010_stripe_billing",
+      "breakpoints": true
     }
   ]
 }
