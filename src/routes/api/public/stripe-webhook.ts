@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { verifyStripeSignature } from '@/lib/billing/stripe.server';
 
-type Obj = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+type Obj = any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 export const Route = createFileRoute('/api/public/stripe-webhook')({
   server: {

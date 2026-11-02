@@ -24,7 +24,7 @@ export function PayOnline() {
   if (!user || role === 'admin') return null;
   const plans = (catalog.data?.plans ?? []).filter(p => p.active && p.offer_active !== false && p.price_cents !== null);
   const go = async (method: PayMethod) => {
-    if (!plan) return toast.error('Escolha um plano.');
+    if (!plan) { toast.error('Escolha um plano.'); return; }
     setBusy(true);
     try { const r = await checkout({ data: { planId: plan, method } }); if ('url' in r && r.url) window.location.href = r.url; else toast.error(('error' in r && r.error) || 'Não foi possível abrir o pagamento.'); }
     catch { toast.error('Não foi possível abrir o pagamento.'); } finally { setBusy(false); }
