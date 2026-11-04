@@ -92,10 +92,10 @@ export const geocodeAddress = createServerFn({ method: 'POST' })
 
 export const computeRoute = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { points: { lat: number; lng: number }[] }) => {
+  .inputValidator((input: { points: { lat: number; lng: number }[]; optimize?: boolean }) => {
     const points = (input.points ?? []).filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng)).slice(0, 25);
     if (points.length < 2) throw new Error('São necessários pelo menos dois pontos com localização.');
-    return { points };
+    return { points, optimize: Boolean(input.optimize) && points.length > 3 };
   })
   .handler(async ({ data, context }) => {
     await ensureStaff(context as unknown as Ctx);
@@ -103,9 +103,9 @@ export const computeRoute = createServerFn({ method: 'POST' })
     const pts = data.points;
     const json = (await gateway('/routes/directions/v2:computeRoutes', {
       method: 'POST',
-      fieldMask: 'routes.distanceMeters,routes.duration,routes.legs.distanceMeters,routes.legs.duration,routes.polyline.encodedPolyline',
-      body: JSON.stringify({ origin: wp(pts[0]!), destination: wp(pts[pts.length - 1]!), intermediates: pts.slice(1, -1).map(wp), travelMode: 'DRIVE', languageCode: 'pt-BR' }),
-    })) as { routes?: { distanceMeters?: number; duration?: string; legs?: { distanceMeters?: number; duration?: string }[]; polyline?: { encodedPolyline?: string } }[] };
+      fieldMask: 'routes.distanceMeters,routes.duration,routes.legs.distanceMeters,routes.legs.duration,routes.polyline.encodedPolyline,routes.optimizedIntermediateWaypointIndex',
+      body: JSON.stringify({ origin: wp(pts[0]!), destination: wp(pts[pts.length - 1]!), intermediates: pts.slice(1, -1).map(wp), travelMode: 'DRIVE', languageCode: 'pt-BR', ...(data.optimize ? { optimizeWaypointOrder: true } : {}) }),
+    })) as { routes?: { distanceMeters?: number; duration?: string; legs?: { distanceMeters?: number; duration?: string }[]; polyline?: { encodedPolyline?: string }; optimizedIntermediateWaypointIndex?: number[] }[] };
     const route = json.routes?.[0];
     if (!route || !route.duration) return null;
     const sec = (d?: string) => (d ? parseFloat(d.replace('s', '')) : null);
@@ -113,5 +113,6 @@ export const computeRoute = createServerFn({ method: 'POST' })
       distanceMeters: route.distanceMeters ?? 0, durationSec: sec(route.duration),
       legs: (route.legs ?? []).map(l => ({ distanceMeters: l.distanceMeters ?? 0, durationSec: sec(l.duration) })),
       polyline: route.polyline?.encodedPolyline ?? null,
+      order: data.optimize ? (route.optimizedIntermediateWaypointIndex ?? null) : null,
     };
   });
