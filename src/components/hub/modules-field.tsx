@@ -175,7 +175,7 @@ export function Rotas() {
     toast.success('Visita registrada.'); await inv();
   }
   async function fromAgenda() {
-    const todays = visits.filter(v => v.company_id && v.status === 'agendada' && v.scheduled_for?.startsWith(today)).sort((a, b) => (a.scheduled_for ?? '').localeCompare(b.scheduled_for ?? ''));
+    const todays = visits.filter(v => v.company_id && v.status === 'agendada' && v.scheduled_for && new Date(v.scheduled_for).toLocaleDateString('en-CA') === today).sort((a, b) => (a.scheduled_for ?? '').localeCompare(b.scheduled_for ?? ''));
     if (!todays.length) { toast.error('Nenhuma visita agendada para hoje.'); return; }
     let n = 0; for (const v of todays) { if ((await addToTodayRoute(v.company_id!)) !== 'exists') n++; }
     toast.success(n ? `${n} visita(s) agendada(s) adicionada(s) ao roteiro.` : 'As visitas de hoje já estão no roteiro.'); setEst(null); await inv();
