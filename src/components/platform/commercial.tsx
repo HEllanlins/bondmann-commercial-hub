@@ -173,7 +173,7 @@ function PlanCommercialConfig({ plans, onNew }: { plans: Plan[]; onNew: () => vo
 export const MEMBER_PERMISSIONS: [string, string][] = [['prospeccao', 'Prospecção e pesquisa de empresas'], ['clientes', 'Criar e editar empresas'], ['rotas', 'Gerenciar rotas'], ['visitas', 'Registrar visitas'], ['crm', 'Gerenciar CRM'], ['followups', 'Criar follow-ups'], ['relatorios', 'Visualizar relatórios'], ['produtos', 'Gerenciar produtos'], ['ia', 'Usar assistente de IA'], ['mapas', 'Mapas avançados'], ['dashboard', 'Dashboard'], ['indicadores_equipe', 'Ver indicadores e registros da equipe']];
 
 export function TeamManager({ organizationId, maxUsers, isOwner }: { organizationId: string; maxUsers: number | null; isOwner: boolean }) {
-  const qc = useQueryClient(); const { user } = useAuth();
+  const qc = useQueryClient(); const { user } = useAuth(); const sendInvites = useServerFn(sendInviteEmails);
   const team = useQuery({ queryKey: ['team', organizationId], queryFn: async () => {
     const [m, i] = await Promise.all([supabase.from('organization_members').select('*').eq('organization_id', organizationId), supabase.from('organization_invites').select('*').eq('organization_id', organizationId).eq('status', 'pending')]);
     const ids = (m.data ?? []).map(x => x.user_id); const p = ids.length ? (await supabase.from('profiles').select('id,full_name,email').in('id', ids)).data ?? [] : [];
