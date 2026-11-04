@@ -147,13 +147,52 @@ export function Rotas() {
     setEstErr(null); try { const r = await route({ data: { points: pts } }); if (!r) setEstErr('Não foi possível calcular a rota.'); setEst(r); } catch (e) { setEstErr(e instanceof Error ? e.message : 'Erro'); }
   }
   const located = stops.filter(s => s.company?.latitude != null);
+  async function optimize() {
+    // Mantém o primeiro e o último destino fixos (ou a origem + último); reordena os intermediários pelo Google.
+    const loc = located; const pts = [...(origin ? [origin] : []), ...loc.map(s => ({ lat: s.company!.latitude!, lng: s.company!.longitude! }))];
+    setEstErr(null);
+    try {
+      const r = await route({ data: { points: pts, optimize: true } }); if (!r) { setEstErr('Não foi possível otimizar a rota.'); return; }
+      if (r.order) {
+        const fixedHead = origin ? [] : [loc[0]!]; const mids = origin ? loc.slice(0, -1) : loc.slice(1, -1); const tail = loc[loc.length - 1]!;
+        const ordered = [...fixedHead, ...r.order.map(i => mids[i]!), tail, ...stops.filter(s => s.company?.latitude == null)];
+        const base = Math.max(...stops.map(s => s.position)) + 1;
+        for (const [i, s] of ordered.entries()) await supabase.from('route_stops').update({ position: base + i }).eq('id', s.id);
+        await inv(); toast.success('Ordem das paradas otimizada pelo menor percurso estimado.');
+      }
+      setEst(r);
+    } catch (e) { setEstErr(e instanceof Error ? e.message : 'Erro'); }
+  }
+  async function registerVisit(s: (typeof stops)[number]) {
+    const note = window.prompt('Resumo da visita (opcional):') ?? null; if (note === null) return;
+    const uid = (await supabase.auth.getUser()).data.user?.id; if (!uid) return;
+    const open = visits.find(v => v.company_id === s.company_id && v.status === 'agendada');
+    const now = new Date().toISOString();
+    const r = open ? await supabase.from('visits').update({ status: 'realizada', done_at: now, summary: note || open.summary }).eq('id', open.id)
+      : await supabase.from('visits').insert({ owner_id: uid, company_id: s.company_id, status: 'realizada', scheduled_for: now, done_at: now, summary: note || null });
+    if (r.error) { toast.error('Não foi possível registrar a visita.'); return; }
+    await supabase.from('route_stops').update({ status: 'visitada' }).eq('id', s.id);
+    toast.success('Visita registrada.'); await inv();
+  }
+  async function fromAgenda() {
+    const todays = visits.filter(v => v.company_id && v.status === 'agendada' && v.scheduled_for && new Date(v.scheduled_for).toLocaleDateString('en-CA') === today).sort((a, b) => (a.scheduled_for ?? '').localeCompare(b.scheduled_for ?? ''));
+    if (!todays.length) { toast.error('Nenhuma visita agendada para hoje.'); return; }
+    let n = 0; for (const v of todays) { if ((await addToTodayRoute(v.company_id!)) !== 'exists') n++; }
+    toast.success(n ? `${n} visita(s) agendada(s) adicionada(s) ao roteiro.` : 'As visitas de hoje já estão no roteiro.'); setEst(null); await inv();
+  }
   const points = [...(origin ? [{ id: 'origem', lat: origin.lat, lng: origin.lng, title: 'Ponto inicial', label: 'S' }] : []), ...located.map(s => ({ id: s.id, lat: s.company!.latitude!, lng: s.company!.longitude!, title: companyName(s.company), label: String(stops.indexOf(s) + 1), html: `${companyName(s.company)} — ${s.company!.address ?? ''}` }))];
   const legOffset = origin ? 0 : -1;
+  function fullRouteUrl() {
+    const enc = (s: (typeof stops)[number]) => s.company?.latitude != null ? `${s.company.latitude},${s.company.longitude}` : encodeURIComponent(s.company?.address ?? companyName(s.company));
+    const list = stops.filter(s => s.company); const dest = list[list.length - 1]; if (!dest) return '#';
+    const mids = list.slice(0, -1).map(enc).join('|');
+    return `https://www.google.com/maps/dir/?api=1&travelmode=driving${origin ? `&origin=${origin.lat},${origin.lng}` : ''}&destination=${enc(dest)}${mids ? `&waypoints=${mids}` : ''}`;
+  }
   if (isLoading) return <p className="mt-8 text-sm text-steel">Carregando…</p>;
   return <div className="mt-6 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
     <div>
       <h2 className="text-lg font-bold">Minha rota de hoje <span className="text-sm font-normal text-steel">· {new Date().toLocaleDateString('pt-BR')}</span></h2>
-      <div className="mt-3 flex flex-wrap gap-2"><Select value={adding} onChange={e => setAdding(e.target.value)} className="h-10 max-w-xs"><option value="">Adicionar empresa…</option>{companies.filter(c => !stops.some(s => s.company_id === c.id)).map(c => <option key={c.id} value={c.id}>{companyName(c)}</option>)}</Select><Button size="sm" onClick={() => void add()} disabled={!adding}><Plus /> Adicionar</Button><Button size="sm" variant="outline" onClick={locate}><LocateFixed /> {origin ? 'Início: minha localização' : 'Definir ponto inicial'}</Button><Button size="sm" variant="outline" onClick={() => void estimate()} disabled={located.length + (origin ? 1 : 0) < 2}>Calcular tempo e distância</Button></div>
+      <div className="mt-3 flex flex-wrap gap-2"><Select value={adding} onChange={e => setAdding(e.target.value)} className="h-10 max-w-xs"><option value="">Adicionar empresa…</option>{companies.filter(c => !stops.some(s => s.company_id === c.id)).map(c => <option key={c.id} value={c.id}>{companyName(c)}</option>)}</Select><Button size="sm" onClick={() => void add()} disabled={!adding}><Plus /> Adicionar</Button><Button size="sm" variant="outline" onClick={locate}><LocateFixed /> {origin ? 'Início: minha localização' : 'Definir ponto inicial'}</Button><Button size="sm" variant="outline" onClick={() => void estimate()} disabled={located.length + (origin ? 1 : 0) < 2}>Calcular tempo e distância</Button><Button size="sm" variant="outline" onClick={() => void optimize()} disabled={located.length + (origin ? 1 : 0) < 4}><RouteIcon /> Otimizar ordem</Button><Button size="sm" variant="outline" onClick={() => void fromAgenda()}><CalendarDays /> Roteiro das visitas de hoje</Button>{stops.length ? <Button asChild size="sm" variant="outline"><a href={fullRouteUrl()} target="_blank" rel="noreferrer"><Navigation /> Percurso completo no Google Maps</a></Button> : null}</div>
       {estErr ? <p className="mt-2 text-sm text-destructive">{estErr}</p> : est ? <p className="mt-2 text-sm">Total estimado: <b>{(est.distanceMeters / 1000).toFixed(1).replace('.', ',')} km</b> · <b>{Math.round((est.durationSec ?? 0) / 60)} min</b> <span className="text-xs text-steel">(estimativa do Google, de carro)</span></p> : null}
       <div className="mt-4 space-y-2">{stops.length === 0 ? <Empty>Sua rota de hoje está vazia. Adicione empresas aqui, pela Prospecção ou pela página da empresa.</Empty> : <>
         <div className="rounded-md border border-border bg-card p-3 text-sm"><b>Ponto inicial:</b> {origin ? 'Minha localização atual' : 'não definido'}</div>
@@ -164,6 +203,7 @@ export function Rotas() {
             <div className="mt-3 flex flex-wrap items-center gap-2"><Input type="time" defaultValue={s.planned_time?.slice(0, 5) ?? ''} onBlur={e => void setTime(s.id, e.target.value)} className="h-9 w-28" aria-label="Horário planejado" />
               {s.company ? <Button asChild size="sm"><a href={navUrl(s.company)} target="_blank" rel="noreferrer"><Navigation /> Abrir navegação</a></Button> : null}
               {s.company && wazeUrl(s.company) ? <Button asChild size="sm" variant="outline"><a href={wazeUrl(s.company)!} target="_blank" rel="noreferrer">Waze</a></Button> : null}
+              {!visited ? <Button size="sm" variant="secondary" onClick={() => void registerVisit(s)}>Registrar visita</Button> : null}
               <Button size="icon" variant="ghost" aria-label="Subir" disabled={i === 0} onClick={() => void move(i, -1)}><ArrowUp /></Button><Button size="icon" variant="ghost" aria-label="Descer" disabled={i === stops.length - 1} onClick={() => void move(i, 1)}><ArrowDown /></Button><Button size="icon" variant="ghost" aria-label="Remover" onClick={() => void remove(s.id)}><Trash2 /></Button></div>
             {s.company && s.company.latitude == null ? <p className="mt-2 text-xs text-steel">Sem localização no cadastro: a navegação usa o endereço em texto e a parada não entra no cálculo.</p> : null}
           </div></div>; })}</>}

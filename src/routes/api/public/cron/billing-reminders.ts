@@ -5,8 +5,21 @@ import { authenticateCronRequest } from '@/integrations/supabase/cron-auth';
 export const Route = createFileRoute('/api/public/cron/billing-reminders')({
   server: {
     handlers: {
+      // Vercel Cron chama GET com "Authorization: Bearer CRON_SECRET".
+      GET: async ({ request }) => {
+        const secret = process.env['CRON_SECRET'];
+        if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) return new Response('Unauthorized', { status: 401 });
+        return run();
+      },
       POST: async ({ request }) => {
         const denied = await authenticateCronRequest(request); if (denied) return denied;
+        return run();
+      },
+    },
+  },
+});
+
+async function run() {
         const { supabaseAdmin: db } = await import('@/integrations/supabase/client.server');
         const now = Date.now();
         const { data: subs } = await db.from('platform_subscriptions').select('id,user_id,organization_id,status,valid_until,plan_id,payment_method,stripe_subscription_id').in('status', ['active', 'trial', 'awaiting_payment']);
@@ -26,8 +39,7 @@ export const Route = createFileRoute('/api/public/cron/billing-reminders')({
           const r = await db.from('user_notifications').upsert({ user_id: uid, kind: n.kind, title: n.title, body: n.body, link: '/assinatura', dedupe_key: n.key }, { onConflict: 'dedupe_key', ignoreDuplicates: true }).select('id');
           created += r.data?.length ?? 0;
         }
-        return Response.json({ ok: true, created });
-      },
-    },
-  },
-});
+        const { deliverPendingEmails } = await import('@/lib/email/email.server');
+        const email = await deliverPendingEmails(db).catch(e => { console.error('email', e); return { sent: 0, configured: false }; });
+        return Response.json({ ok: true, created, emails: email.sent });
+}

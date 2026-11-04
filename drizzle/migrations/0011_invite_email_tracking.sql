@@ -1,0 +1,1 @@
+ALTER TABLE public.organization_invites ADD COLUMN IF NOT EXISTS email_sent_at timestamptz;

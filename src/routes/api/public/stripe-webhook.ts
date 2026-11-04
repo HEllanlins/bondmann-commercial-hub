@@ -78,6 +78,7 @@ export const Route = createFileRoute('/api/public/stripe-webhook')({
           await db.from('stripe_events').delete().eq('id', event.id); // permite nova tentativa da Stripe
           return new Response('error', { status: 500 });
         }
+        try { const { deliverPendingEmails } = await import('@/lib/email/email.server'); await deliverPendingEmails(db); } catch (e) { console.error('email delivery failed', e); }
         return new Response('ok');
       },
     },

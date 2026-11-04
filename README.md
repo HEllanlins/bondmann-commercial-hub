@@ -1608,3 +1608,9 @@ npm run dev
 | `VITE_AUTH_OAUTH_MODE=direct` | Login Google fora da Lovable | Requer cliente OAuth Google próprio configurado no login |
 
 Sem essas chaves, as telas funcionam mas a busca, o mapa e a IA mostram mensagem de configuração.
+
+## Financeiro, avisos diários e e-mails (Vercel)
+
+- **Avisos diários**: `vercel.json` agenda `/api/public/cron/billing-reminders` às 12:00 UTC (09:00 de Brasília). Defina `CRON_SECRET` na Vercel (qualquer texto longo aleatório); a Vercel envia esse valor automaticamente. Cron diário funciona em todos os planos Vercel.
+- **E-mails** (convites, pagamentos, vencimentos): defina `RESEND_API_KEY` e `EMAIL_FROM` (ex.: `Bondmann <avisos@seudominio.com.br>`, domínio verificado no Resend) e `SITE_URL=https://bondmann-company.vercel.app`. Sem essas variáveis, os avisos continuam só dentro do site.
+- **Mapas**: `GOOGLE_MAPS_SERVER_KEY` (Places API New, Geocoding, Routes; restrição por IP ou nenhuma) e `VITE_GOOGLE_MAPS_BROWSER_KEY` (Maps JavaScript API; restrita ao domínio `https://bondmann-company.vercel.app/*`).

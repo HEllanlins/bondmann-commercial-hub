@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth/use-auth';
 import { catalogOptions, currency, date, type Plan } from '@/lib/platform/data';
 import type { Json } from '@/integrations/supabase/types';
+import { useServerFn } from '@tanstack/react-start';
+import { sendInviteEmails } from '@/lib/email/email.functions';
 
 const ERR: Record<string, string> = {
   request_exists: 'Você já tem uma solicitação em análise.', invalid_plan: 'Plano indisponível.', company_required: 'Informe o nome da empresa.',
@@ -171,7 +173,7 @@ function PlanCommercialConfig({ plans, onNew }: { plans: Plan[]; onNew: () => vo
 export const MEMBER_PERMISSIONS: [string, string][] = [['prospeccao', 'Prospecção e pesquisa de empresas'], ['clientes', 'Criar e editar empresas'], ['rotas', 'Gerenciar rotas'], ['visitas', 'Registrar visitas'], ['crm', 'Gerenciar CRM'], ['followups', 'Criar follow-ups'], ['relatorios', 'Visualizar relatórios'], ['produtos', 'Gerenciar produtos'], ['ia', 'Usar assistente de IA'], ['mapas', 'Mapas avançados'], ['dashboard', 'Dashboard'], ['indicadores_equipe', 'Ver indicadores e registros da equipe']];
 
 export function TeamManager({ organizationId, maxUsers, isOwner }: { organizationId: string; maxUsers: number | null; isOwner: boolean }) {
-  const qc = useQueryClient(); const { user } = useAuth();
+  const qc = useQueryClient(); const { user } = useAuth(); const sendInvites = useServerFn(sendInviteEmails);
   const team = useQuery({ queryKey: ['team', organizationId], queryFn: async () => {
     const [m, i] = await Promise.all([supabase.from('organization_members').select('*').eq('organization_id', organizationId), supabase.from('organization_invites').select('*').eq('organization_id', organizationId).eq('status', 'pending')]);
     const ids = (m.data ?? []).map(x => x.user_id); const p = ids.length ? (await supabase.from('profiles').select('id,full_name,email').in('id', ids)).data ?? [] : [];
@@ -184,10 +186,10 @@ export function TeamManager({ organizationId, maxUsers, isOwner }: { organizatio
   return <section className="mt-10 border-t border-border pt-6">
     <h2 className="text-xl font-bold">Gestão de equipe</h2>
     <p className="mt-1 text-sm text-steel">Vagas: {active} de {maxUsers ?? '—'} usadas (inclui o proprietário). Sem permissões marcadas, o membro usa os recursos do plano, exceto gestão de equipe.</p>
-    <form className="mt-5 grid gap-3 rounded-md border border-border bg-card p-5" onSubmit={async e => { e.preventDefault(); const f = new FormData(e.currentTarget); if (await run('invite_member', { organization_id: organizationId, email: String(f.get('email')), role: String(f.get('role')), permissions: perms })) { e.currentTarget.reset(); setPerms([]); } }}>
+    <form className="mt-5 grid gap-3 rounded-md border border-border bg-card p-5" onSubmit={async e => { e.preventDefault(); const f = new FormData(e.currentTarget); const form = e.currentTarget; if (await run('invite_member', { organization_id: organizationId, email: String(f.get('email')), role: String(f.get('role')), permissions: perms })) { form.reset(); setPerms([]); try { const r = await sendInvites({ data: { organizationId } }); if (r.sent) toast.success('Convite enviado por e-mail.'); } catch { /* e-mail opcional */ } } }}>
       <div className="grid gap-3 sm:grid-cols-[2fr_1fr_auto]"><Input name="email" type="email" required placeholder="E-mail do funcionário" /><select name="role" className="h-12 rounded-2xl border border-border bg-card px-3" disabled={!isOwner}><option value="member">Funcionário</option><option value="admin">Administrador da empresa</option></select><Button type="submit"><MailPlus /> Convidar</Button></div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">{MEMBER_PERMISSIONS.map(([k, l]) => <label key={k} className="inline-flex items-center gap-2"><input type="checkbox" checked={perms.includes(k)} onChange={e => setPerms(e.target.checked ? [...perms, k] : perms.filter(x => x !== k))} />{l}</label>)}</div>
-      <p className="text-xs text-steel">O funcionário entra com a própria conta usando este e-mail e aceita o convite na área "Funcionário". O envio de e-mail do convite ainda não está configurado — avise a pessoa diretamente.</p>
+      <p className="text-xs text-steel">O funcionário entra com a própria conta usando este e-mail e aceita o convite na área "Funcionário". Quando o envio de e-mail estiver configurado, o convite também chega por e-mail.</p>
     </form>
     {(team.data?.invites ?? []).length ? <><h3 className="mt-6 font-bold">Convites pendentes</h3>{team.data!.invites.map(i => <div key={i.id} className="flex justify-between gap-2 border-b border-border py-3 text-sm"><span>{i.email} · {i.role === 'admin' ? 'Administrador' : 'Funcionário'}</span><Button size="sm" variant="ghost" onClick={() => void run('revoke_invite', { id: i.id })}>Cancelar convite</Button></div>)}</> : null}
     <h3 className="mt-6 font-bold">Membros</h3>
