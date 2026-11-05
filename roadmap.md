@@ -1,4 +1,8 @@
 - [x] Corrigir contraste dos temas e disponibilizar seletor no site público.
+- [ ] Substituir Google Maps por Leaflet/OSM com serviços gratuitos, cache e limites globais.
+- [ ] Integrar visitas, planejamento por horários, execução GPS e histórico de rotas.
+- [ ] Preparar Keep Alive no GitHub existente e documentar configuração/limitações.
+- [ ] Testar mapas, regras de sequência, permissões, persistência e telas mobile.
 - [x] Separar entrada Cliente / Representante / Empresa e preservar autenticação.
 - [x] Implementar planos, recursos e assinatura individual com bloqueio por estado.
 - [x] Implementar organizações, proprietário e funcionários com aprovação e isolamento.
