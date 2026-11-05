@@ -111,8 +111,11 @@ export type Database = {
           address: string | null
           city: string | null
           cnpj: string | null
+          coordinates_verified: boolean
           created_at: string
           email: string | null
+          geocoded_address: string | null
+          geocoded_at: string | null
           id: string
           latitude: number | null
           longitude: number | null
@@ -123,6 +126,7 @@ export type Database = {
           owner_id: string
           phone: string | null
           place_id: string | null
+          postal_code: string | null
           potential: string | null
           segment_id: string | null
           source: string
@@ -138,8 +142,11 @@ export type Database = {
           address?: string | null
           city?: string | null
           cnpj?: string | null
+          coordinates_verified?: boolean
           created_at?: string
           email?: string | null
+          geocoded_address?: string | null
+          geocoded_at?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -150,6 +157,7 @@ export type Database = {
           owner_id?: string
           phone?: string | null
           place_id?: string | null
+          postal_code?: string | null
           potential?: string | null
           segment_id?: string | null
           source?: string
@@ -165,8 +173,11 @@ export type Database = {
           address?: string | null
           city?: string | null
           cnpj?: string | null
+          coordinates_verified?: boolean
           created_at?: string
           email?: string | null
+          geocoded_address?: string | null
+          geocoded_at?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -177,6 +188,7 @@ export type Database = {
           owner_id?: string
           phone?: string | null
           place_id?: string | null
+          postal_code?: string | null
           potential?: string | null
           segment_id?: string | null
           source?: string
@@ -295,6 +307,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      map_provider_limits: {
+        Row: {
+          available_at: string
+          provider: string
+        }
+        Insert: {
+          available_at: string
+          provider: string
+        }
+        Update: {
+          available_at?: string
+          provider?: string
+        }
+        Relationships: []
+      }
+      map_service_cache: {
+        Row: {
+          cache_key: string
+          expires_at: string
+          payload: Json
+        }
+        Insert: {
+          cache_key: string
+          expires_at: string
+          payload: Json
+        }
+        Update: {
+          cache_key?: string
+          expires_at?: string
+          payload?: Json
+        }
+        Relationships: []
       }
       opportunities: {
         Row: {
@@ -972,33 +1017,91 @@ export type Database = {
         }
         Relationships: []
       }
+      route_execution_events: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          organization_id: string | null
+          owner_id: string
+          route_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          organization_id?: string | null
+          owner_id?: string
+          route_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          organization_id?: string | null
+          owner_id?: string
+          route_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_execution_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_execution_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_execution_events_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_stops: {
         Row: {
           company_id: string
+          completed_at: string | null
           created_at: string
           id: string
           planned_time: string | null
           position: number
           route_id: string
           status: string
+          visit_id: string | null
         }
         Insert: {
           company_id: string
+          completed_at?: string | null
           created_at?: string
           id?: string
           planned_time?: string | null
           position?: number
           route_id: string
           status?: string
+          visit_id?: string | null
         }
         Update: {
           company_id?: string
+          completed_at?: string | null
           created_at?: string
           id?: string
           planned_time?: string | null
           position?: number
           route_id?: string
           status?: string
+          visit_id?: string | null
         }
         Relationships: [
           {
@@ -1015,41 +1118,60 @@ export type Database = {
             referencedRelation: "routes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "route_stops_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
         ]
       }
       routes: {
         Row: {
           created_at: string
+          finished_at: string | null
           id: string
           name: string | null
           organization_id: string | null
           owner_id: string
           route_date: string
+          route_plan: Json | null
           start_label: string | null
           start_lat: number | null
           start_lng: number | null
+          started_at: string | null
+          status: string
         }
         Insert: {
           created_at?: string
+          finished_at?: string | null
           id?: string
           name?: string | null
           organization_id?: string | null
           owner_id?: string
           route_date?: string
+          route_plan?: Json | null
           start_label?: string | null
           start_lat?: number | null
           start_lng?: number | null
+          started_at?: string | null
+          status?: string
         }
         Update: {
           created_at?: string
+          finished_at?: string | null
           id?: string
           name?: string | null
           organization_id?: string | null
           owner_id?: string
           route_date?: string
+          route_plan?: Json | null
           start_label?: string | null
           start_lat?: number | null
           start_lng?: number | null
+          started_at?: string | null
+          status?: string
         }
         Relationships: [
           {
@@ -1240,6 +1362,21 @@ export type Database = {
           },
         ]
       }
+      system_heartbeat: {
+        Row: {
+          id: boolean
+          last_ping_at: string
+        }
+        Insert: {
+          id?: boolean
+          last_ping_at?: string
+        }
+        Update: {
+          id?: boolean
+          last_ping_at?: string
+        }
+        Relationships: []
+      }
       trial_grants: {
         Row: {
           created_at: string
@@ -1352,9 +1489,13 @@ export type Database = {
       }
       visits: {
         Row: {
+          arrived_at: string | null
           company_id: string | null
           created_at: string
+          departed_at: string | null
           done_at: string | null
+          duration_minutes: number
+          fixed_time: boolean
           id: string
           next_step: string | null
           notes: string | null
@@ -1366,9 +1507,13 @@ export type Database = {
           summary: string | null
         }
         Insert: {
+          arrived_at?: string | null
           company_id?: string | null
           created_at?: string
+          departed_at?: string | null
           done_at?: string | null
+          duration_minutes?: number
+          fixed_time?: boolean
           id?: string
           next_step?: string | null
           notes?: string | null
@@ -1380,9 +1525,13 @@ export type Database = {
           summary?: string | null
         }
         Update: {
+          arrived_at?: string | null
           company_id?: string | null
           created_at?: string
+          departed_at?: string | null
           done_at?: string | null
+          duration_minutes?: number
+          fixed_time?: boolean
           id?: string
           next_step?: string | null
           notes?: string | null
@@ -1438,9 +1587,14 @@ export type Database = {
       can_use_feature: { Args: { _key: string }; Returns: boolean }
       can_use_hub: { Args: never; Returns: boolean }
       can_view_owner: { Args: { _owner: string }; Returns: boolean }
+      claim_map_provider: { Args: { _provider: string }; Returns: boolean }
       commercial_action: {
         Args: { _action: string; _payload?: Json }
         Returns: Json
+      }
+      complete_route_stop: {
+        Args: { _skip?: boolean; _stop: string }
+        Returns: undefined
       }
       current_subscription: {
         Args: never
@@ -1486,6 +1640,7 @@ export type Database = {
       }
       hub_context: { Args: never; Returns: Json }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      keepalive_ping: { Args: never; Returns: Json }
       my_org: { Args: never; Returns: string }
       org_manager: { Args: { _org: string }; Returns: boolean }
       owns_organization: { Args: { _id: string }; Returns: boolean }
@@ -1499,6 +1654,7 @@ export type Database = {
         Returns: undefined
       }
       platform_snapshot: { Args: never; Returns: Json }
+      release_map_provider: { Args: { _provider: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "colaborador" | "cliente" | "funcionario"
