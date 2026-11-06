@@ -34,10 +34,11 @@ function CompanyPage() {
   async function setStage(stage: string) { await supabase.from('companies').update({ stage }).eq('id', id); await logEvent(id, 'status', `Status alterado para ${COMPANY_STAGES[stage]}`); await inv(); toast.success('Status atualizado.'); }
   async function addNote() { if (!note.trim()) return; await logEvent(id, 'observacao', note.trim()); setNote(''); await inv(); toast.success('Observação adicionada.'); }
   async function locate() {
-    const addr = [c!.address, c!.neighborhood, c!.city, c!.state].filter(Boolean).join(', ');
+    if (!c) return;
+    const addr = [c.address, c.neighborhood, c.city, c.state].filter(Boolean).join(', ');
     if (!addr) return void toast.error('O cadastro não possui endereço para localizar.');
     setLocating(true);
-    try { const r = await geocode({ data: { address: addr } }); if (!r) toast.error('Não consegui confirmar a localização.'); else { await supabase.from('companies').update({ latitude: r.lat, longitude: r.lng }).eq('id', id); await logEvent(id, 'localizacao', `Localização identificada: ${r.address}`); await inv(); toast.success('Localização encontrada.'); } }
+    try { const r = await geocode({ data: { address: addr } }); if (!r) toast.error('Não consegui confirmar a localização.'); else { const { error } = await supabase.from('companies').update({ latitude: r.lat, longitude: r.lng, geocoded_at: new Date().toISOString(), geocoded_address: addr, coordinates_verified: false }).eq('id', id).select('id').single(); if (error) throw error; await logEvent(id, 'localizacao', `Localização identificada: ${r.address}`); await inv(); toast.success('Localização encontrada.'); } }
     catch (e) { toast.error(e instanceof Error ? e.message : 'Falha'); } finally { setLocating(false); }
   }
   const nf = <span className="italic text-steel/70">não cadastrado</span>;
@@ -47,7 +48,7 @@ function CompanyPage() {
   ].sort((a, b) => b.at.localeCompare(a.at));
   return <Shell>
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div><h1 className="text-3xl font-bold">{companyName(c)}</h1>{c.trade_name ? <p className="text-sm text-steel">{c.name}</p> : null}<div className="mt-2 flex flex-wrap items-center gap-2 text-sm"><Pill tone="info">{seg?.name ?? 'Sem segmento'}</Pill><Pill>{COMPANY_STAGES[c.stage] ?? c.stage}</Pill><span className="text-steel"><MapPin className="inline size-3" /> {[c.neighborhood, c.city, c.state].filter(Boolean).join(', ') || 'Localização não cadastrada'}</span></div><p className="mt-1 text-xs text-steel">Origem: {c.source === 'google_maps' ? 'Prospecção (Google Maps)' : 'Cadastro manual'}</p></div>
+      <div><h1 className="text-3xl font-bold">{companyName(c)}</h1>{c.trade_name ? <p className="text-sm text-steel">{c.name}</p> : null}<div className="mt-2 flex flex-wrap items-center gap-2 text-sm"><Pill tone="info">{seg?.name ?? 'Sem segmento'}</Pill><Pill>{COMPANY_STAGES[c.stage] ?? c.stage}</Pill><span className="text-steel"><MapPin className="inline size-3" /> {[c.neighborhood, c.city, c.state].filter(Boolean).join(', ') || 'Localização não cadastrada'}</span></div><p className="mt-1 text-xs text-steel">Origem: {c.source === 'openstreetmap' ? 'Prospecção (OpenStreetMap)' : c.source === 'google_maps' ? 'Fonte anterior' : 'Cadastro manual'}</p></div>
       <Select value={c.stage} onChange={e => void setStage(e.target.value)} className="w-48" aria-label="Alterar status">{Object.entries(COMPANY_STAGES).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select>
     </div>
     <div className="mt-5 flex flex-wrap gap-2">

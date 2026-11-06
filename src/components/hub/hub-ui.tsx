@@ -1,9 +1,12 @@
-import { useState, type ReactNode, type ComponentProps } from 'react';
+import { useEffect, useState, type ReactNode, type ComponentProps } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Field, Input, Textarea } from '@/components/bond/field';
 import { supabase } from '@/integrations/supabase/client';
+import { useServerFn } from '@tanstack/react-start';
+import { geocodeAddress } from '@/lib/hub/maps.functions';
+import { HubMap } from './hub-map';
 import { cn } from '@/lib/utils';
 import { COMPANY_STAGES, PRIORITIES, VISIT_RESULTS, logEvent, myId, useCompanies, useInvalidateHub, useSegments, type Company, type Visit } from '@/lib/hub/data';
 
@@ -35,16 +38,27 @@ const fail = (e: unknown) => toast.error(e instanceof Error ? e.message : 'Não 
 export function CompanyForm({ open, onOpenChange, company, initial }: { open: boolean; onOpenChange: (v: boolean) => void; company?: Company; initial?: Partial<Company> }) {
   const { data: segments = [] } = useSegments(); const inv = useInvalidateHub(); const [saving, setSaving] = useState(false);
   const base = company ?? initial ?? {};
+  const geocode = useServerFn(geocodeAddress);
+  const [position, setPosition] = useState<{lat:number;lng:number}|null>(null);
+  useEffect(() => { setPosition(company?.latitude != null && company.longitude != null ? {lat:company.latitude,lng:company.longitude} : null); }, [open,company?.id]);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setSaving(true);
     const f = new FormData(e.currentTarget); const v = (k: string) => (String(f.get(k) ?? '').trim() || null);
-    const row = { name: v('name') ?? '', trade_name: v('trade_name'), cnpj: v('cnpj'), phone: v('phone'), whatsapp: v('whatsapp'), email: v('email'), website: v('website'), address: v('address'), neighborhood: v('neighborhood'), city: v('city'), state: v('state'), activity: v('activity'), segment_id: v('segment_id'), stage: v('stage') ?? 'prospect', notes: v('notes') };
+    const row = { postal_code: v('postal_code'), name: v('name') ?? '', trade_name: v('trade_name'), cnpj: v('cnpj'), phone: v('phone'), whatsapp: v('whatsapp'), email: v('email'), website: v('website'), address: v('address'), neighborhood: v('neighborhood'), city: v('city'), state: v('state'), activity: v('activity'), segment_id: v('segment_id'), stage: v('stage') ?? 'prospect', notes: v('notes') };
     try {
       if (!row.name) throw new Error('Informe o nome da empresa.');
-      if (company) { const { error } = await supabase.from('companies').update(row).eq('id', company.id); if (error) throw error; await logEvent(company.id, 'edicao', 'Dados da empresa atualizados'); }
+      const address = [row.address, row.neighborhood, row.city, row.state, row.postal_code].filter(Boolean).join(', ');
+      const previous = [company?.address,company?.neighborhood,company?.city,company?.state,company?.postal_code].filter(Boolean).join(', ');
+      let geo: {latitude:number|null;longitude:number|null;coordinates_verified:boolean;geocoded_address:string|null;geocoded_at:string|null} | undefined;
+      if(position && (position.lat!==company?.latitude || position.lng!==company?.longitude)) geo={latitude:position.lat,longitude:position.lng,coordinates_verified:true,geocoded_address:address,geocoded_at:new Date().toISOString()};
+      else if(address && address!==previous && !initial?.latitude){
+        try { const found=await geocode({data:{address}}); geo={latitude:found?.lat??null,longitude:found?.lng??null,coordinates_verified:false,geocoded_address:address,geocoded_at:found?new Date().toISOString():null}; if(!found)toast.warning('Endereço não localizado. Corrija a posição depois.'); }
+        catch { geo={latitude:null,longitude:null,coordinates_verified:false,geocoded_address:null,geocoded_at:null};toast.warning('Empresa será salva sem localização. O serviço de mapas está indisponível.'); }
+      }
+      if (company) { const { error } = await supabase.from('companies').update({ ...row, ...geo }).eq('id', company.id); if (error) throw error; await logEvent(company.id, 'edicao', 'Dados da empresa atualizados'); }
       else {
         const seg = segments.find(s => s.id === row.segment_id);
-        const { data, error } = await supabase.from('companies').insert({ ...row, owner_id: await myId(), source: initial?.source ?? 'manual', place_id: initial?.place_id ?? null, latitude: initial?.latitude ?? null, longitude: initial?.longitude ?? null, potential: seg?.potential ?? null }).select('id').single();
+        const { data, error } = await supabase.from('companies').insert({ ...row, owner_id: await myId(), source: initial?.source ?? 'manual', place_id: initial?.place_id ?? null, latitude: initial?.latitude ?? null, longitude: initial?.longitude ?? null, ...geo, potential: seg?.potential ?? null }).select('id').single();
         if (error) throw error; await logEvent(data.id, 'cadastro', `Empresa cadastrada (origem: ${initial?.source ?? 'manual'})`);
       }
       toast.success('Empresa salva.'); await inv(); onOpenChange(false);
@@ -63,11 +77,13 @@ export function CompanyForm({ open, onOpenChange, company, initial }: { open: bo
       <Field label="Bairro"><Input name="neighborhood" defaultValue={d('neighborhood')} /></Field>
       <Field label="Cidade"><Input name="city" defaultValue={d('city')} /></Field>
       <Field label="UF"><Input name="state" maxLength={2} defaultValue={d('state')} /></Field>
+      <Field label="CEP"><Input name="postal_code" defaultValue={d('postal_code')} /></Field>
       <Field label="CNPJ"><Input name="cnpj" defaultValue={d('cnpj')} /></Field>
       <Field label="Atividade"><Input name="activity" defaultValue={d('activity')} /></Field>
       <Field label="Segmento"><Select name="segment_id" defaultValue={d('segment_id')}><option value="">Não definido</option>{segments.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></Field>
       <Field label="Status"><Select name="stage" defaultValue={d('stage') || 'prospect'}>{Object.entries(COMPANY_STAGES).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
       <div className="sm:col-span-2"><Field label="Observações"><Textarea name="notes" defaultValue={d('notes')} /></Field></div>
+      <div className="sm:col-span-2"><HubMap points={position?[{id:'posicao',...position,title:'Posição da empresa'}]:[]} onPick={setPosition} className="h-56" /><p className="mt-1 text-xs text-steel">{position?`Posição: ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`:'Localização ainda não confirmada'}</p></div>
       <Button type="submit" disabled={saving} className="sm:col-span-2">{saving ? 'Salvando…' : 'Salvar empresa'}</Button>
     </form>
   </Modal>;
@@ -80,7 +96,7 @@ export function VisitForm({ open, onOpenChange, companyId }: { open: boolean; on
     try {
       const cid = String(f.get('company_id') ?? ''); const date = String(f.get('date')); const time = String(f.get('time') || '09:00');
       if (!cid || !date) throw new Error('Escolha a empresa e a data.');
-      const { error } = await supabase.from('visits').insert({ company_id: cid, owner_id: await myId(), scheduled_for: new Date(`${date}T${time}`).toISOString(), status: 'agendada', summary: String(f.get('summary') ?? '') || null });
+      const { error } = await supabase.from('visits').insert({ company_id: cid, owner_id: await myId(), scheduled_for: new Date(`${date}T${time}`).toISOString(), status: 'agendada', fixed_time: Boolean(f.get('time')), duration_minutes: Number(f.get('duration')) || 30, summary: String(f.get('summary') ?? '') || null });
       if (error) throw error; await logEvent(cid, 'visita', `Visita agendada para ${new Date(`${date}T${time}`).toLocaleString('pt-BR')}`);
       toast.success('Visita agendada.'); await inv(); onOpenChange(false);
     } catch (err) { fail(err); } finally { setSaving(false); }
@@ -88,7 +104,8 @@ export function VisitForm({ open, onOpenChange, companyId }: { open: boolean; on
   return <Modal open={open} onOpenChange={onOpenChange} title="Agendar visita">
     <form onSubmit={submit} className="grid gap-3">
       <Field label="Empresa"><Select name="company_id" defaultValue={companyId ?? ''} required><option value="">Selecione</option>{companies.map(c => <option key={c.id} value={c.id}>{c.trade_name || c.name}</option>)}</Select></Field>
-      <div className="grid grid-cols-2 gap-3"><Field label="Data"><Input name="date" type="date" required defaultValue={new Date().toLocaleDateString('en-CA')} /></Field><Field label="Horário"><Input name="time" type="time" defaultValue="09:00" /></Field></div>
+      <div className="grid grid-cols-2 gap-3"><Field label="Data"><Input name="date" type="date" required defaultValue={new Date().toLocaleDateString('en-CA')} /></Field><Field label="Horário"><Input name="time" type="time" /></Field></div>
+      <Field label="Duração estimada (min)"><Input name="duration" type="number" min={1} max={480} defaultValue={30} /></Field>
       <Field label="Objetivo"><Textarea name="summary" /></Field>
       <Button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Agendar'}</Button>
     </form>
@@ -103,9 +120,9 @@ export function VisitResultForm({ visit, onClose }: { visit: Visit | null; onClo
     e.preventDefault(); if (!visit?.company_id) return; setSaving(true); const f = new FormData(e.currentTarget);
     const result = String(f.get('result')); const next = String(f.get('next_step') ?? '').trim(); const fuDate = String(f.get('fu_date') ?? '');
     try {
-      const { error } = await supabase.from('visits').update({ status: 'realizada', result, notes: String(f.get('notes') ?? '') || null, next_step: next || null, done_at: new Date().toISOString() }).eq('id', visit.id);
+      const { error } = await supabase.from('visits').update({ status: 'realizada', result, notes: String(f.get('notes') ?? '') || null, next_step: next || null, done_at: new Date().toISOString(), departed_at: new Date().toISOString() }).eq('id', visit.id);
       if (error) throw error;
-      const map = RESULT_STAGE[result]!;
+      const map = RESULT_STAGE[result]; if (!map) throw new Error('Resultado inválido.');
       await supabase.from('companies').update({ stage: map.company }).eq('id', visit.company_id);
       if (map.opp) {
         const { data: opp } = await supabase.from('opportunities').select('id').eq('company_id', visit.company_id).not('stage', 'in', '(cliente,perdido)').limit(1).maybeSingle();
@@ -113,7 +130,7 @@ export function VisitResultForm({ visit, onClose }: { visit: Visit | null; onClo
         else if (result !== 'sem_interesse') await supabase.from('opportunities').insert({ company_id: visit.company_id, owner_id: await myId(), title: 'Oportunidade gerada em visita', stage: map.opp });
       }
       if (next && fuDate) await supabase.from('follow_ups').insert({ company_id: visit.company_id, owner_id: await myId(), title: next, due_at: new Date(`${fuDate}T09:00`).toISOString(), priority: 'media', status: 'pendente' });
-      await supabase.from('route_stops').update({ status: 'visitada' }).eq('company_id', visit.company_id).eq('status', 'pendente');
+      // Linked route stops are completed atomically by the visit completion trigger.
       await logEvent(visit.company_id, 'visita', `Visita realizada — resultado: ${VISIT_RESULTS[result]}${next ? `. Próximo passo: ${next}` : ''}`);
       toast.success('Visita registrada. CRM e follow-ups atualizados.'); await inv(); onClose();
     } catch (err) { fail(err); } finally { setSaving(false); }
