@@ -327,16 +327,19 @@ export type Database = {
         Row: {
           cache_key: string
           expires_at: string
+          owner_id: string | null
           payload: Json
         }
         Insert: {
           cache_key: string
           expires_at: string
+          owner_id?: string | null
           payload: Json
         }
         Update: {
           cache_key?: string
           expires_at?: string
+          owner_id?: string | null
           payload?: Json
         }
         Relationships: []
