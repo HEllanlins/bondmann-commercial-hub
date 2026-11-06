@@ -11,10 +11,11 @@ async function authorize(context: Ctx, keys: string[]) {
 }
 function coordinates(p: Coordinate) { return Number.isFinite(p.lat) && Number.isFinite(p.lng) && Math.abs(p.lat) <= 90 && Math.abs(p.lng) <= 180; }
 
-/** Privileged cache only; callers MUST authorize first. Never caches private CRM rows. */
+/** Owner-scoped cache; shared atomic limiter enforces provider limits across all users. */
 async function cached(admin: SupabaseClient<Database>, provider: string, url: string, init: RequestInit, ttl: number) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url + (init.body ?? '')));
-  const key = provider + ':' + Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+  const uid=(await admin.auth.getUser()).data.user?.id; if(!uid)throw new Error('Sessão expirada.');
+  const key = uid + ':' + provider + ':' + Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
   const { data: hit } = await admin.from('map_service_cache').select('payload').eq('cache_key', key).gt('expires_at', new Date().toISOString()).maybeSingle();
   if (hit) return hit.payload;
   const { data: claimed, error } = await admin.rpc('claim_map_provider', { _provider: provider });
@@ -26,7 +27,7 @@ async function cached(admin: SupabaseClient<Database>, provider: string, url: st
     const payload = JSON.parse(text) as Json;
     await admin.from('map_service_cache').upsert({ cache_key: key, payload, expires_at: new Date(Date.now() + ttl).toISOString() });
     return payload;
-  } finally { await admin.rpc('release_map_provider', { _provider: provider }); }
+  } finally { /* Atomic shared slots are never released early. */ }
 }
 
 type Geo = { lat: string; lon: string; display_name: string };
@@ -39,7 +40,7 @@ export const geocodeAddress = createServerFn({ method: 'POST' }).middleware([req
   .inputValidator((input: { address: string }) => { const address = String(input.address ?? '').trim().slice(0, 240); if (address.length < 4) throw new Error('Endereço insuficiente para localizar.'); return { address }; })
   .handler(async ({ data, context }) => {
     await authorize(context, ['clientes', 'prospeccao']);
-    const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+    const supabaseAdmin = context.supabase;
     return geocode(supabaseAdmin, data.address, process.env['NOMINATIM_URL'] || 'https://nominatim.openstreetmap.org');
   });
 
@@ -64,7 +65,7 @@ export const searchPlaces = createServerFn({ method: 'POST' }).middleware([requi
  })
  .handler(async ({data,context})=>{
   await authorize(context,['prospeccao']);
-  const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
+  const supabaseAdmin=context.supabase;
   let point=data.point;
   if(!point){ const address=[data.neighborhood,data.city].filter(Boolean).join(', '); if(!address) throw new Error('Escolha um ponto no mapa, autorize GPS ou informe a cidade.'); point=await geocode(supabaseAdmin,address,process.env['NOMINATIM_URL']||'https://nominatim.openstreetmap.org'); }
   if(!point) throw new Error('Região não encontrada. Escolha um ponto no mapa.');
@@ -85,7 +86,7 @@ export const computeRoute = createServerFn({method:'POST'}).middleware([requireS
   return {points,optimize:Boolean(i.optimize),appointments:i.appointments,startSec:Number.isFinite(i.startSec)?Number(i.startSec):0};
  })
  .handler(async ({data,context})=>{
-  await authorize(context,['rotas']);const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
+  await authorize(context,['rotas']);const supabaseAdmin=context.supabase;
   const base=(process.env['OSRM_URL']||'https://routing.openstreetmap.de/routed-car').replace(/\/$/,'');
   let points=data.points; let schedule:ReturnType<typeof planAppointments>=[]; let order:number[]|null=null;
   if(data.optimize&&data.appointments){

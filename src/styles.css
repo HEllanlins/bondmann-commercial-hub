@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
 
 /*
  * Bondmann — design system ("Industrial frost glass")
@@ -185,3 +186,10 @@
     display: none;
   }
 }
+
+.bond-map-icon { background: var(--aqua); color: var(--primary-foreground); border: 2px solid var(--card); border-radius: 50%; text-align: center; line-height: 26px; font-weight: 700; }
+.bond-map-icon[data-status="visitada"], .bond-map-icon[data-status="realizada"] { background: var(--success); }
+.bond-map-icon[data-status="cancelada"], .bond-map-icon[data-status="pulada"] { background: var(--steel); }
+.bond-map-popup { color: var(--foreground); }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--card); }
+.leaflet-container { font-family: var(--font-sans); }

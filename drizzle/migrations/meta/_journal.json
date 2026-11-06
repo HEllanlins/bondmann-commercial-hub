@@ -92,6 +92,13 @@
       "when": 1793906493480,
       "tag": "0012_free_maps_route_execution",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793930124024,
+      "tag": "0013_map_cache_authenticated_access",
+      "breakpoints": true
     }
   ]
 }

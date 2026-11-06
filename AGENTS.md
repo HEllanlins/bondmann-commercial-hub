@@ -19,5 +19,7 @@
 
 - Product requests use the signed-in browser client with owner-scoped RLS, and appear in the client history and staff queue; this keeps request visibility separate from future payment and email integrations.
 - Hub comercial modules live in src/components/hub and src/lib/hub; Maps/AI calls go through authenticated server functions so keys stay server-side and RLS scopes AI context.
+- Map rendering dynamically imports Leaflet after hydration; provider calls use authenticated maps.functions with owner-scoped persistent cache and an atomic global limiter, avoiding SSR browser imports and per-instance throttles.
+- Route ordering is isolated in route-planner.ts and tested against appointment priorities; stops link exact visit IDs and completion uses an authorized transactional RPC so unrelated routes are not completed.
 - Subscriptions, trials, teams and per-feature gating run through commercial_action/can_use_feature/can_view_owner RPCs so plan rules are enforced in RLS, not only in menus.
 - Stripe billing uses the user's own Stripe key via fetch helpers in src/lib/billing (server-only); access is granted only by the signature-verified, idempotent webhook at /api/public/stripe-webhook, never by the checkout return page.

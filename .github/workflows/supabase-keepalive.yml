@@ -1,0 +1,26 @@
+name: Backend heartbeat
+on:
+  schedule:
+    - cron: '23 1,9,17 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: backend-heartbeat
+  cancel-in-progress: false
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check heartbeat
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_URL" && test -n "$SUPABASE_PUBLISHABLE_KEY" || { echo 'Configure the two repository secrets.'; exit 1; }
+          status=$(curl --silent --show-error --max-time 25 --output /tmp/heartbeat.json --write-out '%{http_code}' --request POST "${SUPABASE_URL%/}/rest/v1/rpc/keepalive_ping" --header "apikey: $SUPABASE_PUBLISHABLE_KEY" --header 'Content-Type: application/json' --data '{}')
+          if [ "$status" != '200' ]; then echo "Heartbeat failed: HTTP $status"; exit 1; fi
+          python3 -c 'import json; assert json.load(open("/tmp/heartbeat.json")).get("ok") is True'
+          echo 'Heartbeat OK (no commercial data accessed).'

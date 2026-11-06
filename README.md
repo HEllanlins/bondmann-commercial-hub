@@ -1601,16 +1601,30 @@ npm run dev
 | `VITE_SITE_URL` | Retorno de login, confirmação e Google | `https://bondmann-company.vercel.app` |
 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` / `VITE_SUPABASE_PROJECT_ID` | Banco e login no navegador | Mesmos valores do arquivo `.env` do projeto |
 | `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` | Banco nas funções do servidor | Mesmos valores do `.env` |
-| `GOOGLE_MAPS_SERVER_KEY` (secreta) | Busca de empresas, localização e rotas | Google Cloud → chave com Places API (New), Geocoding API e Routes API; restrição por API, sem restrição de site |
-| `VITE_GOOGLE_MAPS_BROWSER_KEY` | Mapa visual | Google Cloud → chave com Maps JavaScript API, restrita a `https://bondmann-company.vercel.app/*` |
+| `NOMINATIM_URL` (opcional) | Geocodificação | Padrão `https://nominatim.openstreetmap.org` |
+| `OSRM_URL` (opcional) | Percursos e matriz de tempos | Padrão `https://routing.openstreetmap.de/routed-car` |
+| `OVERPASS_URL` (opcional) | Prospecção OpenStreetMap | Padrão `https://overpass-api.de/api/interpreter` |
+| `VITE_OSM_TILE_URL` (opcional) | Mapa visual | Padrão `https://tile.openstreetmap.org/{z}/{x}/{y}.png` |
 | `OPENAI_API_KEY` (secreta) | Assistente IA | platform.openai.com → API keys |
 | `OPENAI_MODEL` (opcional) | Modelo da IA | ex.: `gpt-4.1-mini` |
 | `VITE_AUTH_OAUTH_MODE=direct` | Login Google fora da Lovable | Requer cliente OAuth Google próprio configurado no login |
 
-Sem essas chaves, as telas funcionam mas a busca, o mapa e a IA mostram mensagem de configuração.
+Mapas não precisam de chave Google nem cartão. A IA continua dependendo de sua configuração anterior. Login Google permanece independente dos mapas.
 
 ## Financeiro, avisos diários e e-mails (Vercel)
 
 - **Avisos diários**: `vercel.json` agenda `/api/public/cron/billing-reminders` às 12:00 UTC (09:00 de Brasília). Defina `CRON_SECRET` na Vercel (qualquer texto longo aleatório); a Vercel envia esse valor automaticamente. Cron diário funciona em todos os planos Vercel.
 - **E-mails** (convites, pagamentos, vencimentos): defina `RESEND_API_KEY` e `EMAIL_FROM` (ex.: `Bondmann <avisos@seudominio.com.br>`, domínio verificado no Resend) e `SITE_URL=https://bondmann-company.vercel.app`. Sem essas variáveis, os avisos continuam só dentro do site.
-- **Mapas**: `GOOGLE_MAPS_SERVER_KEY` (Places API New, Geocoding, Routes; restrição por IP ou nenhuma) e `VITE_GOOGLE_MAPS_BROWSER_KEY` (Maps JavaScript API; restrita ao domínio `https://bondmann-company.vercel.app/*`).
+- **Mapas**: Leaflet/OpenStreetMap + Nominatim/Overpass/OSRM, sem Google Maps Platform. Variáveis opcionais acima permitem trocar provedores sem alterar a interface.
+
+## Rotas gratuitas e Keep Alive
+
+- Abra **Rotas**, escolha a data, vincule visitas agendadas e defina início por GPS ou selecionando o mapa. **Gerar Rota** calcula matriz OSRM e sequência local priorizando compromissos fixos, incluindo duração das visitas. Conflitos aparecem como atrasos previstos.
+- **Iniciar/retomar**, **Pausar**, **Pular**, **Concluir visita**, **Finalizar** gravam eventos sem guardar trilha GPS. Visitas ligadas atualizam o progresso; cancelamentos ficam fora do percurso. GPS só enquanto a tela está ativa; não há navegação curva a curva ou garantia de rastreamento com celular bloqueado.
+- Cadastro geocodifica apenas quando o endereço muda, preserva cadastro em caso de falha, permite posição manual no mapa. Prospecção exige confirmação antes de salvar; contatos ausentes continuam ausentes e inferências não são dados confirmados.
+- Cache persistente por usuário (endereços 30 dias, buscas 1 hora, trajetos 5 minutos); limite global atômico de 1100ms por provedor. Sem autocomplete, buscas em massa, download de mapas offline ou tentativas automáticas repetidas.
+- Serviços públicos não têm SLA, cobertura completa, trânsito ao vivo ou garantia para operação comercial crítica. Verifique termos antes de venda ampla e hospede OSRM/Overpass/Nominatim ou configure provedor autorizado conforme o volume. Políticas: https://operations.osmfoundation.org/policies/nominatim/ ; https://operations.osmfoundation.org/policies/tiles/ ; https://routing.openstreetmap.de/about.html ; https://dev.overpass-api.de/overpass-doc/en/preface/commons.html .
+- `.github/workflows/supabase-keepalive.yml` executa às 01:23, 09:23 e 17:23 UTC (22:23 do dia anterior, 06:23 e 14:23 em Brasília), e manualmente em Actions → Backend heartbeat → Run workflow. GitHub pode atrasar horários e desativar schedules de repositórios públicos inativos. Precisa estar na branch padrão.
+- No repositório existente: Settings → Secrets and variables → Actions → New repository secret. Cadastre `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` usando os respectivos valores existentes da integração do projeto; nunca use chave administrativa. Não foram cadastrados automaticamente no GitHub.
+- O workflow chama somente `keepalive_ping()`: heartbeat agregado, atualizado no máximo uma vez por hora, sem acessar dados comerciais. É preventivo, não recupera projeto pausado nem garante impedir pausa; pode manter consumo de processamento no backend. O plano/hospedagem atual é gerenciado, não se presume política do plano gratuito de outro serviço.
+- Alterações principais: `src/lib/hub/maps.functions.ts`, `route-planner.ts` e testes, `commercial-routes.tsx`, `hub-map.tsx`, formulários em `hub-ui.tsx`, integração de prospecção/relatórios, CSS Leaflet; migrações `0012` e `0013` adicionam metadados geográficos, duração/horário, plano de rota, vínculo visita/parada, eventos, cache, limiter e heartbeat.
