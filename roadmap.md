@@ -1,8 +1,11 @@
 - [x] Corrigir contraste dos temas e disponibilizar seletor no site público.
-- [ ] Substituir Google Maps por Leaflet/OSM com serviços gratuitos, cache e limites globais.
-- [ ] Integrar visitas, planejamento por horários, execução GPS e histórico de rotas.
-- [ ] Preparar Keep Alive no GitHub existente e documentar configuração/limitações.
-- [ ] Testar mapas, regras de sequência, permissões, persistência e telas mobile.
+- [x] Substituir Google Maps por Leaflet/OSM com serviços gratuitos, cache e limites globais.
+- [x] Integrar visitas, planejamento por horários, execução GPS e histórico de rotas.
+- [x] Preparar Keep Alive no GitHub existente e documentar configuração/limitações; RPC testado.
+- [x] Validar mapa autenticado, cinco testes de horários/duplicidades, tela mobile e compilação automática.
+- [ ] Validar prospecção real: Overpass público retornou 406/timeout; depende de disponibilidade do provedor.
+- [ ] Validar gravação de visita → rota → conclusão: aguarda empresas oficiais ou dados DEMO autorizados.
+- [ ] Ativar agenda GitHub: depende dos secrets do repositório e workflow na branch padrão.
 - [x] Separar entrada Cliente / Representante / Empresa e preservar autenticação.
 - [x] Implementar planos, recursos e assinatura individual com bloqueio por estado.
 - [x] Implementar organizações, proprietário e funcionários com aprovação e isolamento.
@@ -15,8 +18,8 @@
 - [ ] Testar ciclo empresarial/assinatura completo: aguarda dados de teste autorizados, sem alterar Pedro.
 - [x] Validar sinal automático de compilação e registrar limitações externas (pagamento, e-mail e Google/Vercel).
 - [x] MVP comercial: prospecção, empresas, rotas, CRM, visitas, follow-ups, produtos, relatórios, IA, configurações, notificações.
-- [x] Reconectar Google Maps Platform no novo espaço de trabalho.
-- [ ] Testar fluxo completo (inclui representante) logado como Hellan: aguarda login na prévia.
+- [x] Substituir chamadas Google Maps Platform por provedores OSM; login Google preservado.
+- [ ] Testar fluxo completo (inclui representante): Hellan autenticada, mas faltam dados comerciais autorizados.
 - [x] Liberar Hub Comercial a representantes/empresas com acesso ativo (dados próprios).
 - [x] Login Google ativo; elan.lins@gmail.com vira admin ao entrar.
 - [x] Fallback Vercel para mapas e IA via variáveis próprias; documentado no README.
