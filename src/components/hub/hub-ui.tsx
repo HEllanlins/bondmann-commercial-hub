@@ -51,7 +51,7 @@ export function CompanyForm({ open, onOpenChange, company, initial }: { open: bo
       const previous = [company?.address,company?.neighborhood,company?.city,company?.state,company?.postal_code].filter(Boolean).join(', ');
       let geo: {latitude:number|null;longitude:number|null;coordinates_verified:boolean;geocoded_address:string|null;geocoded_at:string|null} | undefined;
       if(position && (position.lat!==company?.latitude || position.lng!==company?.longitude)) geo={latitude:position.lat,longitude:position.lng,coordinates_verified:true,geocoded_address:address,geocoded_at:new Date().toISOString()};
-      else if(address && address!==previous && !initial?.latitude){
+      else if(address && address!==previous && initial?.latitude==null){
         try { const found=await geocode({data:{address}}); geo={latitude:found?.lat??null,longitude:found?.lng??null,coordinates_verified:false,geocoded_address:address,geocoded_at:found?new Date().toISOString():null}; if(!found)toast.warning('Endereço não localizado. Corrija a posição depois.'); }
         catch { geo={latitude:null,longitude:null,coordinates_verified:false,geocoded_address:null,geocoded_at:null};toast.warning('Empresa será salva sem localização. O serviço de mapas está indisponível.'); }
       }
@@ -120,16 +120,16 @@ export function VisitResultForm({ visit, onClose }: { visit: Visit | null; onClo
     e.preventDefault(); if (!visit?.company_id) return; setSaving(true); const f = new FormData(e.currentTarget);
     const result = String(f.get('result')); const next = String(f.get('next_step') ?? '').trim(); const fuDate = String(f.get('fu_date') ?? '');
     try {
+      const map = RESULT_STAGE[result]; if (!map) throw new Error('Resultado inválido.');
       const { error } = await supabase.from('visits').update({ status: 'realizada', result, notes: String(f.get('notes') ?? '') || null, next_step: next || null, done_at: new Date().toISOString(), departed_at: new Date().toISOString() }).eq('id', visit.id);
       if (error) throw error;
-      const map = RESULT_STAGE[result]; if (!map) throw new Error('Resultado inválido.');
-      await supabase.from('companies').update({ stage: map.company }).eq('id', visit.company_id);
+      const companyUpdate=await supabase.from('companies').update({ stage: map.company }).eq('id', visit.company_id);if(companyUpdate.error)throw companyUpdate.error;
       if (map.opp) {
-        const { data: opp } = await supabase.from('opportunities').select('id').eq('company_id', visit.company_id).not('stage', 'in', '(cliente,perdido)').limit(1).maybeSingle();
-        if (opp) await supabase.from('opportunities').update({ stage: map.opp, updated_at: new Date().toISOString() }).eq('id', opp.id);
-        else if (result !== 'sem_interesse') await supabase.from('opportunities').insert({ company_id: visit.company_id, owner_id: await myId(), title: 'Oportunidade gerada em visita', stage: map.opp });
+        const { data: opp,error:oppError } = await supabase.from('opportunities').select('id').eq('company_id', visit.company_id).not('stage', 'in', '(cliente,perdido)').limit(1).maybeSingle();if(oppError)throw oppError;
+        if (opp) {const updated=await supabase.from('opportunities').update({ stage: map.opp, updated_at: new Date().toISOString() }).eq('id', opp.id);if(updated.error)throw updated.error;}
+        else if (result !== 'sem_interesse') {const created=await supabase.from('opportunities').insert({ company_id: visit.company_id, owner_id: await myId(), title: 'Oportunidade gerada em visita', stage: map.opp });if(created.error)throw created.error;}
       }
-      if (next && fuDate) await supabase.from('follow_ups').insert({ company_id: visit.company_id, owner_id: await myId(), title: next, due_at: new Date(`${fuDate}T09:00`).toISOString(), priority: 'media', status: 'pendente' });
+      if (next && fuDate) {const follow=await supabase.from('follow_ups').insert({ company_id: visit.company_id, owner_id: await myId(), title: next, due_at: new Date(`${fuDate}T09:00`).toISOString(), priority: 'media', status: 'pendente' });if(follow.error)throw follow.error;}
       // Linked route stops are completed atomically by the visit completion trigger.
       await logEvent(visit.company_id, 'visita', `Visita realizada — resultado: ${VISIT_RESULTS[result]}${next ? `. Próximo passo: ${next}` : ''}`);
       toast.success('Visita registrada. CRM e follow-ups atualizados.'); await inv(); onClose();
