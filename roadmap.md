@@ -1,4 +1,8 @@
 - [x] Corrigir contraste dos temas e disponibilizar seletor no site público.
+- [ ] Auditoria atual: corrigir prospecção, cadastro seguro, visitas editáveis, follow-up vinculado e histórico.
+- [ ] Auditoria atual: persistência atômica de rotas, proteção do histórico, GPS e marcadores distintos.
+- [ ] Auditoria atual: IA gratuita explícita, configuração centralizada e navegação autorizada.
+- [ ] Auditoria atual: testes ponta a ponta com DEMO temporário, isolamento e relatório de limitações.
 - [x] Substituir Google Maps por Leaflet/OSM com serviços gratuitos, cache e limites globais.
 - [x] Integrar visitas, planejamento por horários, execução GPS e histórico de rotas.
 - [x] Preparar Keep Alive no GitHub existente e documentar configuração/limitações; RPC testado.
