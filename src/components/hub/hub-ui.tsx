@@ -36,6 +36,7 @@ export function Tabs<K extends string>({ value, onChange, items }: { value: K; o
 const fail = (e: unknown) => toast.error(e instanceof Error ? e.message : 'Não foi possível salvar.');
 
 export function CompanyForm({ open, onOpenChange, company, initial }: { open: boolean; onOpenChange: (v: boolean) => void; company?: Company; initial?: Partial<Company> }) {
+  const {data:existingCompanies=[]}=useCompanies();
   const { data: segments = [] } = useSegments(); const inv = useInvalidateHub(); const [saving, setSaving] = useState(false);
   const base = company ?? initial ?? {};
   const geocode = useServerFn(geocodeAddress);
@@ -47,6 +48,8 @@ export function CompanyForm({ open, onOpenChange, company, initial }: { open: bo
     const row = { postal_code: v('postal_code'), name: v('name') ?? '', trade_name: v('trade_name'), cnpj: v('cnpj'), phone: v('phone'), whatsapp: v('whatsapp'), email: v('email'), website: v('website'), address: v('address'), neighborhood: v('neighborhood'), city: v('city'), state: v('state'), activity: v('activity'), segment_id: v('segment_id'), stage: v('stage') ?? 'prospect', notes: v('notes') };
     try {
       if (!row.name) throw new Error('Informe o nome da empresa.');
+      const identity=(v:string|null)=>v?.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      if(existingCompanies.some(c=>c.id!==company?.id&&((row.cnpj&&identity(c.cnpj)===identity(row.cnpj))||(row.address&&identity(c.name)===identity(row.name)&&identity(c.address)===identity(row.address)))))throw new Error('Já existe uma empresa com esse CNPJ ou nome e endereço.');
       const address = [row.address, row.neighborhood, row.city, row.state, row.postal_code].filter(Boolean).join(', ');
       const previous = [company?.address,company?.neighborhood,company?.city,company?.state,company?.postal_code].filter(Boolean).join(', ');
       let geo: {latitude:number|null;longitude:number|null;coordinates_verified:boolean;geocoded_address:string|null;geocoded_at:string|null} | undefined;

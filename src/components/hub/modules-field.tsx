@@ -80,6 +80,7 @@ export function Prospeccao() {
     catch (err) { setError(err instanceof Error ? err.message : 'Falha na busca.'); } finally { setLoading(false); }
   }
   async function save(p: PlaceResult, route = false) {
+    try {
     let c = saved.get(p.placeId) ?? companies.find(c => sameProspect(c, { name: p.name, address: p.address, place_id: p.placeId }));
     if (!c) {
       const seg = segments.find(s => s.id === form.segment) ?? guessSegment(`${p.name} ${p.activity ?? ''}`, segments);
@@ -91,6 +92,7 @@ export function Prospeccao() {
     }
     if (route) { const r = await addToTodayRoute(c.id); toast.success(r === 'exists' ? 'A empresa já está na rota de hoje.' : 'Adicionada à rota de hoje.'); }
     await inv();
+    }catch(e){toast.error(e instanceof Error?e.message:'Não foi possível salvar.');}
   }
   const withDist = (results ?? []).map(p => ({ ...p, dist: origin && p.lat !== null && p.lng !== null ? distanceKm(origin, { lat: p.lat, lng: p.lng }) : null }));
   const points = withDist.filter(p => p.lat !== null && p.lng !== null).map((p, i) => ({ id: p.placeId, lat: Number(p.lat), lng: Number(p.lng), title: p.name, label: String(i + 1), html: `${p.name} — ${p.address ?? 'endereço não encontrado'}` }));
@@ -104,6 +106,7 @@ export function Prospeccao() {
       <div className="flex flex-wrap gap-2 md:col-span-6"><Button type="submit" disabled={loading}><Search /> {loading ? 'Buscando…' : 'Buscar empresas'}</Button><Button type="button" variant="outline" onClick={locate}><LocateFixed /> {origin ? 'Localização definida' : 'Usar minha localização'}</Button><span className="self-center text-xs text-steel">Fonte: OpenStreetMap · até 100 resultados · cobertura colaborativa.</span></div>
     </form>
     {error ? <div className="mt-4 rounded-md border border-destructive/40 p-4 text-sm text-destructive">{error}</div> : null}
+    {results===null?<div className="mt-4"><HubMap points={[]} onPick={setOrigin} livePosition={origin} className="h-64"/></div>:null}
     {results === null ? <div className="mt-6"><Empty>Faça uma busca para encontrar potenciais clientes. Exemplos: "oficinas" em Brasília, "metalúrgica" no segmento Metalurgia.</Empty></div> : results.length === 0 ? <div className="mt-6"><Empty>Nenhuma empresa encontrada para esta busca.</Empty></div> : <>
       <div className="mt-4 lg:hidden"><Tabs value={view} onChange={setView} items={[['lista', 'Lista', results.length], ['mapa', 'Mapa']]} /></div>
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1fr]">

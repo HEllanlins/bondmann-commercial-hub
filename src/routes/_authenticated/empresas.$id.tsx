@@ -31,7 +31,7 @@ function CompanyPage() {
   if (isLoading) return <Shell><p className="text-sm text-steel">Carregando…</p></Shell>;
   if (!c) return <Shell><Empty>Empresa não encontrada ou sem permissão de acesso.</Empty></Shell>;
   const seg = segments.find(s => s.id === c.segment_id);
-  async function setStage(stage: string) { await supabase.from('companies').update({ stage }).eq('id', id); await logEvent(id, 'status', `Status alterado para ${COMPANY_STAGES[stage]}`); await inv(); toast.success('Status atualizado.'); }
+  async function setStage(stage: string) { const {error}=await supabase.from('companies').update({ stage }).eq('id', id).select('id').single();if(error){toast.error(error.message);return;} await logEvent(id, 'status', `Status alterado para ${COMPANY_STAGES[stage]}`); await inv(); toast.success('Status atualizado.'); }
   async function addNote() { if (!note.trim()) return; await logEvent(id, 'observacao', note.trim()); setNote(''); await inv(); toast.success('Observação adicionada.'); }
   async function locate() {
     if (!c) return;
@@ -56,6 +56,7 @@ function CompanyPage() {
       <Button variant="outline" onClick={() => setVisit(true)}><CalendarDays /> Registrar visita</Button>
       <Button variant="outline" onClick={() => setFu(true)}><Clock3 /> Criar follow-up</Button>
       <Button variant="outline" onClick={() => setEdit(true)}><Pencil /> Editar empresa</Button>
+      <Button variant="outline" onClick={async()=>{if(!window.confirm(c.archived_at?'Restaurar esta empresa?':'Arquivar esta empresa preservando seu histórico?'))return;const {error}=await supabase.from('companies').update({archived_at:c.archived_at?null:new Date().toISOString(),stage:c.archived_at?'prospect':'inativo'}).eq('id',id).select('id').single();if(error)toast.error(error.message);else{await inv();toast.success('Empresa atualizada; histórico preservado.');}}}>{c.archived_at?'Restaurar empresa':'Arquivar empresa'}</Button>
       <Button asChild variant="outline"><a href={navUrl(c)} target="_blank" rel="noreferrer"><Navigation /> Abrir navegação</a></Button>
     </div>
     <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_1fr]">
