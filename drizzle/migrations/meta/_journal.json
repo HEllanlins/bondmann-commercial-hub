@@ -99,6 +99,13 @@
       "when": 1793930124024,
       "tag": "0013_map_cache_authenticated_access",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794328599516,
+      "tag": "0014_hub_audit_integrity",
+      "breakpoints": true
     }
   ]
 }
