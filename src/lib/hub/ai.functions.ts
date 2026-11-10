@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 type Msg = { role: 'user' | 'assistant'; content: string };
 
 const GUIDE = `Você é o Assistente do Bondmann Commercial Hub, plataforma comercial da Bondmann Química.
-Módulos (menu lateral do Hub Comercial): Dashboard, Prospecção (buscar empresas no mapa e salvar), Empresas (cadastro central e página detalhada com ações), Rotas (Minha rota de hoje, ordenar paradas, Abrir navegação), CRM (funil de oportunidades), Visitas (agendar e registrar resultado), Follow-ups (próximas ações), Produtos (catálogo e disponibilidade), Relatórios, Assistente IA, Configurações.
+Módulos (menu lateral do Hub Comercial): Dashboard, Prospecção (buscar empresas no mapa e salvar), Empresas (cadastro central e página detalhada com ações), Rotas (Rotas Comerciais, vincular visitas da data, definir início no mapa ou GPS, Gerar Rota, iniciar e concluir paradas), CRM (funil de oportunidades), Visitas (agendar e registrar resultado), Follow-ups (próximas ações), Produtos (catálogo e disponibilidade), Relatórios, Assistente IA, Configurações.
 Como fazer: cadastrar empresa = Empresas > "Nova empresa" ou Prospecção > "Adicionar à prospecção". Criar rota = em Empresas/Prospecção clique "Adicionar à rota" e abra Rotas. Registrar visita = Visitas > "Nova visita" e depois "Registrar resultado". Follow-up = Follow-ups > "Novo follow-up" ou na página da empresa.
 Regras: responda em português, de forma objetiva. Use SOMENTE os dados do CONTEXTO abaixo, que já respeitam as permissões do usuário. Nunca invente empresas, endereços, telefones, distâncias ou fatos. Se não houver dado, diga claramente que não há registro. Quando um endereço estiver incompleto, diga que o cadastro não possui endereço completo e sugira usar a busca no mapa na página da empresa. Separe "dado cadastrado" de "sugestão/inferência".
 Quando for útil oferecer navegação, termine com uma linha no formato [[abrir:NomeDoModulo]] usando exatamente um dos nomes dos módulos acima.`;
@@ -43,42 +43,27 @@ export const askHub = createServerFn({ method: 'POST' })
       rotas: (routes.data ?? []).map(r => ({ data: r.route_date, paradas: (r.route_stops ?? []).sort((a, b) => a.position - b.position).map(s => ({ empresa: cname.get(s.company_id) ?? '—', status: s.status })) })),
     };
     const input = [{ role: 'system', content: `${GUIDE}\n\nCONTEXTO (JSON):\n${JSON.stringify(ctx)}` }, ...data.messages];
-    const openai = process.env['OPENAI_API_KEY'];
-    const apiKey = process.env['LOVABLE_API_KEY'];
-    if (!openai && !apiKey) throw new Error('IA não configurada. Defina OPENAI_API_KEY.');
-    // Na Lovable usa a IA gerenciada; fora dela (Vercel) usa OPENAI_API_KEY + OPENAI_MODEL.
-    const res = openai
-      ? await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openai}` }, body: JSON.stringify({ model: process.env['OPENAI_MODEL'] || 'gpt-4.1-mini', stream: true, store: false, input }) })
-      : await fetch('https://ai.gateway.lovable.dev/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': apiKey!, 'X-Lovable-AIG-SDK': 'fetch' }, body: JSON.stringify({ model: 'openai/gpt-6-astra', stream: true, store: false, reasoning: { effort: 'low' }, input }) });
-    if (!res.ok || !res.body) {
-      const t = await res.text();
-      console.error(`AI gateway [${res.status}]: ${t}`);
-      if (res.status === 402) throw new Error('Os créditos de IA acabaram. Adicione créditos para continuar usando o assistente.');
-      if (res.status === 429) throw new Error('Muitas solicitações no momento. Aguarde alguns segundos e tente novamente.');
-      throw new Error(`O assistente não respondeu [${res.status}].`);
+    const apiKey = process.env['GEMINI_API_KEY'];
+    if (!apiKey) throw new Error('IA desconectada. Configure GEMINI_API_KEY do Google AI Studio em projeto sem faturamento.');
+    const model = 'gemini-2.5-flash-lite';
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: input[0]?.content ?? GUIDE }] },
+        contents: data.messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })) }),
+    });
+    if (!res.ok) {
+      if (res.status === 429) throw new Error('Cota gratuita de IA esgotada ou limite de frequência atingido. Aguarde a renovação; não há troca para provedor pago.');
+      if (res.status === 400 || res.status === 401 || res.status === 403) throw new Error(`Gemini recusou a configuração [${res.status}]. Verifique a chave e a disponibilidade da API no Google AI Studio.`);
+      throw new Error(`Gemini indisponível [${res.status}]. Tente novamente mais tarde.`);
     }
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
-    let buf = '', text = '', failed: string | null = null;
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop() ?? '';
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        const raw = line.slice(5).trim();
-        if (!raw || raw === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(raw) as { type?: string; delta?: string; error?: { message?: string }; response?: { error?: { message?: string } } };
-          if (ev.type === 'response.output_text.delta' && ev.delta) text += ev.delta;
-          if (ev.type === 'error' || ev.type === 'response.failed') failed = ev.error?.message ?? ev.response?.error?.message ?? 'falha';
-        } catch { /* ignora linha parcial */ }
-      }
-    }
-    if (failed) throw new Error(`O assistente não conseguiu responder: ${failed}`);
-    if (!text.trim()) throw new Error('O assistente não retornou resposta.');
+    const response = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[]; promptFeedback?: { blockReason?: string } };
+    if (response.promptFeedback?.blockReason) throw new Error('O provedor recusou esta solicitação.');
+    const text = response.candidates?.[0]?.content?.parts?.map(p => p.text ?? '').join('') ?? '';
+    if (!text.trim()) throw new Error('Gemini não retornou resposta. Verifique a solicitação e a cota no AI Studio.');
     const m = text.match(/\[\[abrir:([^\]]+)\]\]/);
-    return { content: text.replace(/\[\[abrir:[^\]]+\]\]/g, '').trim(), action: m ? m[1]!.trim() : null };
+    const requested=m?.[1]?.trim();
+    const allowed:Record<string,string>={'Dashboard':'dashboard','Prospecção':'prospeccao','Empresas':'clientes','Rotas':'rotas','CRM':'crm','Visitas':'visitas','Follow-ups':'followups','Produtos':'catalogo','Relatórios':'relatorios','Assistente IA':'ia'};
+    let action:string|null=null;
+    if(requested==='Configurações')action=requested;else if(requested&&allowed[requested]){const permission=await sb.rpc('can_use_feature',{_key:allowed[requested]});if(permission.data)action=requested;}
+    return { content: text.replace(/\[\[abrir:[^\]]+\]\]/g, '').trim(), action };
   });

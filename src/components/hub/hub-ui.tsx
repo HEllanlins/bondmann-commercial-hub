@@ -8,7 +8,7 @@ import { useServerFn } from '@tanstack/react-start';
 import { geocodeAddress } from '@/lib/hub/maps.functions';
 import { HubMap } from './hub-map';
 import { cn } from '@/lib/utils';
-import { COMPANY_STAGES, PRIORITIES, VISIT_RESULTS, logEvent, myId, useCompanies, useInvalidateHub, useSegments, type Company, type Visit } from '@/lib/hub/data';
+import { COMPANY_STAGES, PRIORITIES, VISIT_RESULTS, logEvent, myId, useCompanies, useInvalidateHub, useSegments, useProducts, type Company, type Visit } from '@/lib/hub/data';
 
 export function Select({ className, ...p }: ComponentProps<'select'>) {
   return <select className={cn('h-12 w-full rounded-2xl border border-border bg-card px-4 text-[15px] text-foreground outline-none focus:border-aqua', className)} {...p} />;
@@ -115,29 +115,21 @@ export function VisitForm({ open, onOpenChange, companyId }: { open: boolean; on
 const RESULT_STAGE: Record<string, { company: string; opp: string | null }> = { interessado: { company: 'negociacao', opp: 'interessado' }, sem_interesse: { company: 'sem_interesse', opp: 'perdido' }, retorno: { company: 'visitado', opp: 'visitado' }, proposta: { company: 'negociacao', opp: 'proposta' }, teste: { company: 'negociacao', opp: 'interessado' }, venda: { company: 'cliente', opp: 'cliente' }, reagendar: { company: 'visitado', opp: null } };
 
 export function VisitResultForm({ visit, onClose }: { visit: Visit | null; onClose: () => void }) {
+  const {data:products=[]}=useProducts();
   const inv = useInvalidateHub(); const [saving, setSaving] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); if (!visit?.company_id) return; setSaving(true); const f = new FormData(e.currentTarget);
     const result = String(f.get('result')); const next = String(f.get('next_step') ?? '').trim(); const fuDate = String(f.get('fu_date') ?? '');
     try {
-      const map = RESULT_STAGE[result]; if (!map) throw new Error('Resultado inválido.');
-      const { error } = await supabase.from('visits').update({ status: 'realizada', result, notes: String(f.get('notes') ?? '') || null, next_step: next || null, done_at: new Date().toISOString(), departed_at: new Date().toISOString() }).eq('id', visit.id);
-      if (error) throw error;
-      const companyUpdate=await supabase.from('companies').update({ stage: map.company }).eq('id', visit.company_id);if(companyUpdate.error)throw companyUpdate.error;
-      if (map.opp) {
-        const { data: opp,error:oppError } = await supabase.from('opportunities').select('id').eq('company_id', visit.company_id).not('stage', 'in', '(cliente,perdido)').limit(1).maybeSingle();if(oppError)throw oppError;
-        if (opp) {const updated=await supabase.from('opportunities').update({ stage: map.opp, updated_at: new Date().toISOString() }).eq('id', opp.id);if(updated.error)throw updated.error;}
-        else if (result !== 'sem_interesse') {const created=await supabase.from('opportunities').insert({ company_id: visit.company_id, owner_id: await myId(), title: 'Oportunidade gerada em visita', stage: map.opp });if(created.error)throw created.error;}
-      }
-      if (next && fuDate) {const follow=await supabase.from('follow_ups').insert({ company_id: visit.company_id, owner_id: await myId(), title: next, due_at: new Date(`${fuDate}T09:00`).toISOString(), priority: 'media', status: 'pendente' });if(follow.error)throw follow.error;}
-      // Linked route stops are completed atomically by the visit completion trigger.
-      await logEvent(visit.company_id, 'visita', `Visita realizada — resultado: ${VISIT_RESULTS[result]}${next ? `. Próximo passo: ${next}` : ''}`);
+      const {error}=await supabase.rpc('save_visit_result',{_visit:visit.id,_result:result,_notes:String(f.get('notes')??'')||undefined,_next:next||undefined,_follow_at:fuDate?new Date(`${fuDate}T09:00`).toISOString():undefined,_products:f.getAll('products').map(String)});
+      if(error)throw error;
       toast.success('Visita registrada. CRM e follow-ups atualizados.'); await inv(); onClose();
     } catch (err) { fail(err); } finally { setSaving(false); }
   }
   return <Modal open={Boolean(visit)} onOpenChange={v => !v && onClose()} title="Registrar resultado da visita">
     <form onSubmit={submit} className="grid gap-3">
       <Field label="Resultado"><Select name="result" required defaultValue="interessado">{Object.entries(VISIT_RESULTS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
+      <Field label="Produtos de interesse"><Select name="products" multiple className="h-24">{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
       <Field label="Observações"><Textarea name="notes" /></Field>
       <Field label="Próximo passo" hint="Se informar uma data, um follow-up é criado automaticamente."><Input name="next_step" placeholder="Ex.: Enviar proposta" /></Field>
       <Field label="Data do follow-up"><Input name="fu_date" type="date" /></Field>
