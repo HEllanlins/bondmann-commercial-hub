@@ -125,7 +125,7 @@ export function VisitResultForm({ visit, onClose }: { visit: Visit | null; onClo
     e.preventDefault(); if (!visit?.company_id) return; setSaving(true); const f = new FormData(e.currentTarget);
     const result = String(f.get('result')); const next = String(f.get('next_step') ?? '').trim(); const fuDate = String(f.get('fu_date') ?? '');
     try {
-      const {error}=await supabase.rpc('save_visit_result',{_visit:visit.id,_result:result,_notes:String(f.get('notes')??'')||undefined,_next:next||undefined,_follow_at:fuDate?new Date(`${fuDate}T09:00`).toISOString():undefined,_products:f.getAll('products').map(String)});
+      const {error}=await supabase.rpc('save_visit_result',{_visit:visit.id,_result:result,_notes:String(f.get('notes')??''),_next:next,...(fuDate?{_follow_at:new Date(`${fuDate}T09:00`).toISOString()}:{}),_products:f.getAll('products').map(String)});
       if(error)throw error;
       toast.success('Visita registrada. CRM e follow-ups atualizados.'); await inv(); onClose();
     } catch (err) { fail(err); } finally { setSaving(false); }
