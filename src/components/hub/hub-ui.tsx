@@ -89,24 +89,25 @@ export function CompanyForm({ open, onOpenChange, company, initial }: { open: bo
   </Modal>;
 }
 
-export function VisitForm({ open, onOpenChange, companyId }: { open: boolean; onOpenChange: (v: boolean) => void; companyId?: string }) {
+export function VisitForm({ open, onOpenChange, companyId, visit }: { open: boolean; onOpenChange: (v: boolean) => void; companyId?: string;visit?:Visit|null }) {
   const { data: companies = [] } = useCompanies(); const inv = useInvalidateHub(); const [saving, setSaving] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setSaving(true); const f = new FormData(e.currentTarget);
     try {
       const cid = String(f.get('company_id') ?? ''); const date = String(f.get('date')); const time = String(f.get('time') || '09:00');
       if (!cid || !date) throw new Error('Escolha a empresa e a data.');
-      const { error } = await supabase.from('visits').insert({ company_id: cid, owner_id: await myId(), scheduled_for: new Date(`${date}T${time}`).toISOString(), status: 'agendada', fixed_time: Boolean(f.get('time')), duration_minutes: Number(f.get('duration')) || 30, summary: String(f.get('summary') ?? '') || null });
+      const row={company_id:cid,owner_id:await myId(),scheduled_for:new Date(`${date}T${time}`).toISOString(),status:'agendada',fixed_time:Boolean(f.get('time')),duration_minutes:Number(f.get('duration'))||30,summary:String(f.get('summary')??'')||null};
+      const {error}=visit?await supabase.from('visits').update(row).eq('id',visit.id).select('id').single():await supabase.from('visits').insert(row).select('id').single();
       if (error) throw error; await logEvent(cid, 'visita', `Visita agendada para ${new Date(`${date}T${time}`).toLocaleString('pt-BR')}`);
       toast.success('Visita agendada.'); await inv(); onOpenChange(false);
     } catch (err) { fail(err); } finally { setSaving(false); }
   }
-  return <Modal open={open} onOpenChange={onOpenChange} title="Agendar visita">
+  return <Modal open={open} onOpenChange={onOpenChange} title={visit?"Editar visita":"Agendar visita"}>
     <form onSubmit={submit} className="grid gap-3">
-      <Field label="Empresa"><Select name="company_id" defaultValue={companyId ?? ''} required><option value="">Selecione</option>{companies.map(c => <option key={c.id} value={c.id}>{c.trade_name || c.name}</option>)}</Select></Field>
-      <div className="grid grid-cols-2 gap-3"><Field label="Data"><Input name="date" type="date" required defaultValue={new Date().toLocaleDateString('en-CA')} /></Field><Field label="Horário"><Input name="time" type="time" /></Field></div>
-      <Field label="Duração estimada (min)"><Input name="duration" type="number" min={1} max={480} defaultValue={30} /></Field>
-      <Field label="Objetivo"><Textarea name="summary" /></Field>
+      <Field label="Empresa"><Select name="company_id" defaultValue={visit?.company_id??companyId ?? ''} required><option value="">Selecione</option>{companies.map(c => <option key={c.id} value={c.id}>{c.trade_name || c.name}</option>)}</Select></Field>
+      <div className="grid grid-cols-2 gap-3"><Field label="Data"><Input name="date" type="date" required defaultValue={visit?.scheduled_for?new Date(visit.scheduled_for).toLocaleDateString('en-CA'):new Date().toLocaleDateString('en-CA')} /></Field><Field label="Horário (opcional)"><Input name="time" type="time" defaultValue={visit?.fixed_time&&visit.scheduled_for?new Date(visit.scheduled_for).toLocaleTimeString('en-GB').slice(0,5):''} /></Field></div>
+      <Field label="Duração estimada (min)"><Input name="duration" type="number" min={1} max={480} defaultValue={visit?.duration_minutes??30} /></Field>
+      <Field label="Objetivo"><Textarea name="summary" defaultValue={visit?.summary??''} /></Field>
       <Button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Agendar'}</Button>
     </form>
   </Modal>;

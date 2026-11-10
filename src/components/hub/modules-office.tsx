@@ -46,15 +46,16 @@ export function CRM() {
 
 export function Visitas() {
   const { data: visits = [] } = useVisits(); const name = useName(); const inv = useInvalidateHub();
-  const [tab, setTab] = useState<'hoje' | 'futura' | 'realizada' | 'atrasada'>('hoje'); const [open, setOpen] = useState(false); const [reg, setReg] = useState<Visit | null>(null);
+  const [editVisit,setEditVisit]=useState<Visit|null>(null);
+  const [tab, setTab] = useState<'hoje' | 'futura' | 'realizada' | 'atrasada' | 'cancelada'>('hoje'); const [open, setOpen] = useState(false); const [reg, setReg] = useState<Visit | null>(null);
   const b = visits.map(v => ({ v, k: visitBucket(v) })); const list = b.filter(x => x.k === tab).map(x => x.v);
   const n = (k: string) => b.filter(x => x.k === k).length;
   async function cancel(v: Visit) { const {error}=await supabase.from('visits').update({ status: 'cancelada' }).eq('id', v.id).select('id').single(); if(error) {toast.error(error.message);return;} await inv(); }
   return <div className="mt-6">
-    <div className="flex flex-wrap justify-between gap-3"><Tabs value={tab} onChange={setTab} items={[['hoje', 'Hoje', n('hoje')], ['futura', 'Próximas', n('futura')], ['atrasada', 'Atrasadas', n('atrasada')], ['realizada', 'Realizadas', n('realizada')]]} /><Button onClick={() => setOpen(true)}><Plus /> Nova visita</Button></div>
+    <div className="flex flex-wrap justify-between gap-3"><Tabs value={tab} onChange={setTab} items={[['hoje', 'Hoje', n('hoje')], ['futura', 'Próximas', n('futura')], ['atrasada', 'Atrasadas', n('atrasada')], ['realizada', 'Realizadas', n('realizada')],['cancelada','Canceladas',n('cancelada')]]} /><Button onClick={() => {setEditVisit(null);setOpen(true);}}><Plus /> Nova visita</Button></div>
     <div className="mt-4 space-y-3">{list.length === 0 ? <Empty>{visits.length ? 'Nenhuma visita nesta lista.' : 'Você ainda não possui visitas cadastradas.'}</Empty> : list.map(v => <Card key={v.id}><div className="flex flex-wrap items-start justify-between gap-2"><div><Link to="/empresas/$id" params={{ id: v.company_id ?? '' }} className="font-bold hover:text-aqua">{name(v.company_id)}</Link><p className="text-xs text-steel">{fmtDate(v.scheduled_for)}{v.summary ? ` · ${v.summary}` : ''}</p>{v.result ? <p className="mt-1 text-sm">Resultado: <b>{VISIT_RESULTS[v.result]}</b>{v.next_step ? ` · Próximo passo: ${v.next_step}` : ''}</p> : null}{v.notes ? <p className="text-xs text-steel">{v.notes}</p> : null}</div>
-      {v.status !== 'realizada' ? <div className="flex gap-2"><Button size="sm" onClick={() => setReg(v)}><Check /> Registrar resultado</Button><Button size="sm" variant="ghost" onClick={() => void cancel(v)}>Cancelar</Button></div> : <Pill tone="ok">Realizada</Pill>}</div></Card>)}</div>
-    <VisitForm open={open} onOpenChange={setOpen} /><VisitResultForm visit={reg} onClose={() => setReg(null)} />
+      {!['realizada','cancelada'].includes(v.status) ? <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={()=>{setEditVisit(v);setOpen(true);}}>Editar / reagendar</Button><Button size="sm" onClick={() => setReg(v)}><Check /> Registrar resultado</Button><Button size="sm" variant="ghost" onClick={() => void cancel(v)}>Cancelar</Button></div> : <Pill tone="ok">Realizada</Pill>}</div></Card>)}</div>
+    <VisitForm open={open} onOpenChange={setOpen} visit={editVisit} /><VisitResultForm visit={reg} onClose={() => setReg(null)} />
   </div>;
 }
 
