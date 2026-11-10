@@ -109,6 +109,7 @@ export type Database = {
         Row: {
           activity: string | null
           address: string | null
+          archived_at: string | null
           city: string | null
           cnpj: string | null
           coordinates_verified: boolean
@@ -140,6 +141,7 @@ export type Database = {
         Insert: {
           activity?: string | null
           address?: string | null
+          archived_at?: string | null
           city?: string | null
           cnpj?: string | null
           coordinates_verified?: boolean
@@ -171,6 +173,7 @@ export type Database = {
         Update: {
           activity?: string | null
           address?: string | null
+          archived_at?: string | null
           city?: string | null
           cnpj?: string | null
           coordinates_verified?: boolean
@@ -264,6 +267,7 @@ export type Database = {
           priority: string
           status: string
           title: string
+          visit_id: string | null
         }
         Insert: {
           company_id?: string | null
@@ -277,6 +281,7 @@ export type Database = {
           priority?: string
           status?: string
           title: string
+          visit_id?: string | null
         }
         Update: {
           company_id?: string | null
@@ -290,6 +295,7 @@ export type Database = {
           priority?: string
           status?: string
           title?: string
+          visit_id?: string | null
         }
         Relationships: [
           {
@@ -304,6 +310,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
             referencedColumns: ["id"]
           },
         ]
@@ -1658,6 +1671,27 @@ export type Database = {
       }
       platform_snapshot: { Args: never; Returns: Json }
       release_map_provider: { Args: { _provider: string }; Returns: undefined }
+      save_route_plan: {
+        Args: {
+          _ids: string[]
+          _lat: number
+          _lng: number
+          _plan: Json
+          _route: string
+        }
+        Returns: undefined
+      }
+      save_visit_result: {
+        Args: {
+          _follow_at?: string
+          _next?: string
+          _notes?: string
+          _products?: string[]
+          _result: string
+          _visit: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "colaborador" | "cliente" | "funcionario"

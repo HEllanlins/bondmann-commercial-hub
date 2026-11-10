@@ -8,7 +8,7 @@ import { useServerFn } from '@tanstack/react-start';
 import { geocodeAddress } from '@/lib/hub/maps.functions';
 import { HubMap } from './hub-map';
 import { cn } from '@/lib/utils';
-import { COMPANY_STAGES, PRIORITIES, VISIT_RESULTS, logEvent, myId, useCompanies, useInvalidateHub, useSegments, type Company, type Visit } from '@/lib/hub/data';
+import { COMPANY_STAGES, PRIORITIES, VISIT_RESULTS, logEvent, myId, useCompanies, useInvalidateHub, useSegments, useProducts, type Company, type Visit } from '@/lib/hub/data';
 
 export function Select({ className, ...p }: ComponentProps<'select'>) {
   return <select className={cn('h-12 w-full rounded-2xl border border-border bg-card px-4 text-[15px] text-foreground outline-none focus:border-aqua', className)} {...p} />;
@@ -36,6 +36,7 @@ export function Tabs<K extends string>({ value, onChange, items }: { value: K; o
 const fail = (e: unknown) => toast.error(e instanceof Error ? e.message : 'Não foi possível salvar.');
 
 export function CompanyForm({ open, onOpenChange, company, initial }: { open: boolean; onOpenChange: (v: boolean) => void; company?: Company; initial?: Partial<Company> }) {
+  const {data:existingCompanies=[]}=useCompanies();
   const { data: segments = [] } = useSegments(); const inv = useInvalidateHub(); const [saving, setSaving] = useState(false);
   const base = company ?? initial ?? {};
   const geocode = useServerFn(geocodeAddress);
@@ -47,6 +48,8 @@ export function CompanyForm({ open, onOpenChange, company, initial }: { open: bo
     const row = { postal_code: v('postal_code'), name: v('name') ?? '', trade_name: v('trade_name'), cnpj: v('cnpj'), phone: v('phone'), whatsapp: v('whatsapp'), email: v('email'), website: v('website'), address: v('address'), neighborhood: v('neighborhood'), city: v('city'), state: v('state'), activity: v('activity'), segment_id: v('segment_id'), stage: v('stage') ?? 'prospect', notes: v('notes') };
     try {
       if (!row.name) throw new Error('Informe o nome da empresa.');
+      const identity=(v:string|null)=>v?.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      if(existingCompanies.some(c=>c.id!==company?.id&&((row.cnpj&&identity(c.cnpj)===identity(row.cnpj))||(row.address&&identity(c.name)===identity(row.name)&&identity(c.address)===identity(row.address)))))throw new Error('Já existe uma empresa com esse CNPJ ou nome e endereço.');
       const address = [row.address, row.neighborhood, row.city, row.state, row.postal_code].filter(Boolean).join(', ');
       const previous = [company?.address,company?.neighborhood,company?.city,company?.state,company?.postal_code].filter(Boolean).join(', ');
       let geo: {latitude:number|null;longitude:number|null;coordinates_verified:boolean;geocoded_address:string|null;geocoded_at:string|null} | undefined;
@@ -89,24 +92,25 @@ export function CompanyForm({ open, onOpenChange, company, initial }: { open: bo
   </Modal>;
 }
 
-export function VisitForm({ open, onOpenChange, companyId }: { open: boolean; onOpenChange: (v: boolean) => void; companyId?: string }) {
+export function VisitForm({ open, onOpenChange, companyId, visit }: { open: boolean; onOpenChange: (v: boolean) => void; companyId?: string;visit?:Visit|null }) {
   const { data: companies = [] } = useCompanies(); const inv = useInvalidateHub(); const [saving, setSaving] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setSaving(true); const f = new FormData(e.currentTarget);
     try {
       const cid = String(f.get('company_id') ?? ''); const date = String(f.get('date')); const time = String(f.get('time') || '09:00');
       if (!cid || !date) throw new Error('Escolha a empresa e a data.');
-      const { error } = await supabase.from('visits').insert({ company_id: cid, owner_id: await myId(), scheduled_for: new Date(`${date}T${time}`).toISOString(), status: 'agendada', fixed_time: Boolean(f.get('time')), duration_minutes: Number(f.get('duration')) || 30, summary: String(f.get('summary') ?? '') || null });
+      const row={company_id:cid,owner_id:await myId(),scheduled_for:new Date(`${date}T${time}`).toISOString(),status:'agendada',fixed_time:Boolean(f.get('time')),duration_minutes:Number(f.get('duration'))||30,summary:String(f.get('summary')??'')||null};
+      const {error}=visit?await supabase.from('visits').update(row).eq('id',visit.id).select('id').single():await supabase.from('visits').insert(row).select('id').single();
       if (error) throw error; await logEvent(cid, 'visita', `Visita agendada para ${new Date(`${date}T${time}`).toLocaleString('pt-BR')}`);
       toast.success('Visita agendada.'); await inv(); onOpenChange(false);
     } catch (err) { fail(err); } finally { setSaving(false); }
   }
-  return <Modal open={open} onOpenChange={onOpenChange} title="Agendar visita">
+  return <Modal open={open} onOpenChange={onOpenChange} title={visit?"Editar visita":"Agendar visita"}>
     <form onSubmit={submit} className="grid gap-3">
-      <Field label="Empresa"><Select name="company_id" defaultValue={companyId ?? ''} required><option value="">Selecione</option>{companies.map(c => <option key={c.id} value={c.id}>{c.trade_name || c.name}</option>)}</Select></Field>
-      <div className="grid grid-cols-2 gap-3"><Field label="Data"><Input name="date" type="date" required defaultValue={new Date().toLocaleDateString('en-CA')} /></Field><Field label="Horário"><Input name="time" type="time" /></Field></div>
-      <Field label="Duração estimada (min)"><Input name="duration" type="number" min={1} max={480} defaultValue={30} /></Field>
-      <Field label="Objetivo"><Textarea name="summary" /></Field>
+      <Field label="Empresa"><Select name="company_id" defaultValue={visit?.company_id??companyId ?? ''} required><option value="">Selecione</option>{companies.map(c => <option key={c.id} value={c.id}>{c.trade_name || c.name}</option>)}</Select></Field>
+      <div className="grid grid-cols-2 gap-3"><Field label="Data"><Input name="date" type="date" required defaultValue={visit?.scheduled_for?new Date(visit.scheduled_for).toLocaleDateString('en-CA'):new Date().toLocaleDateString('en-CA')} /></Field><Field label="Horário (opcional)"><Input name="time" type="time" defaultValue={visit?.fixed_time&&visit.scheduled_for?new Date(visit.scheduled_for).toLocaleTimeString('en-GB').slice(0,5):''} /></Field></div>
+      <Field label="Duração estimada (min)"><Input name="duration" type="number" min={1} max={480} defaultValue={visit?.duration_minutes??30} /></Field>
+      <Field label="Objetivo"><Textarea name="summary" defaultValue={visit?.summary??''} /></Field>
       <Button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Agendar'}</Button>
     </form>
   </Modal>;
@@ -115,29 +119,21 @@ export function VisitForm({ open, onOpenChange, companyId }: { open: boolean; on
 const RESULT_STAGE: Record<string, { company: string; opp: string | null }> = { interessado: { company: 'negociacao', opp: 'interessado' }, sem_interesse: { company: 'sem_interesse', opp: 'perdido' }, retorno: { company: 'visitado', opp: 'visitado' }, proposta: { company: 'negociacao', opp: 'proposta' }, teste: { company: 'negociacao', opp: 'interessado' }, venda: { company: 'cliente', opp: 'cliente' }, reagendar: { company: 'visitado', opp: null } };
 
 export function VisitResultForm({ visit, onClose }: { visit: Visit | null; onClose: () => void }) {
+  const {data:products=[]}=useProducts();
   const inv = useInvalidateHub(); const [saving, setSaving] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); if (!visit?.company_id) return; setSaving(true); const f = new FormData(e.currentTarget);
     const result = String(f.get('result')); const next = String(f.get('next_step') ?? '').trim(); const fuDate = String(f.get('fu_date') ?? '');
     try {
-      const map = RESULT_STAGE[result]; if (!map) throw new Error('Resultado inválido.');
-      const { error } = await supabase.from('visits').update({ status: 'realizada', result, notes: String(f.get('notes') ?? '') || null, next_step: next || null, done_at: new Date().toISOString(), departed_at: new Date().toISOString() }).eq('id', visit.id);
-      if (error) throw error;
-      const companyUpdate=await supabase.from('companies').update({ stage: map.company }).eq('id', visit.company_id);if(companyUpdate.error)throw companyUpdate.error;
-      if (map.opp) {
-        const { data: opp,error:oppError } = await supabase.from('opportunities').select('id').eq('company_id', visit.company_id).not('stage', 'in', '(cliente,perdido)').limit(1).maybeSingle();if(oppError)throw oppError;
-        if (opp) {const updated=await supabase.from('opportunities').update({ stage: map.opp, updated_at: new Date().toISOString() }).eq('id', opp.id);if(updated.error)throw updated.error;}
-        else if (result !== 'sem_interesse') {const created=await supabase.from('opportunities').insert({ company_id: visit.company_id, owner_id: await myId(), title: 'Oportunidade gerada em visita', stage: map.opp });if(created.error)throw created.error;}
-      }
-      if (next && fuDate) {const follow=await supabase.from('follow_ups').insert({ company_id: visit.company_id, owner_id: await myId(), title: next, due_at: new Date(`${fuDate}T09:00`).toISOString(), priority: 'media', status: 'pendente' });if(follow.error)throw follow.error;}
-      // Linked route stops are completed atomically by the visit completion trigger.
-      await logEvent(visit.company_id, 'visita', `Visita realizada — resultado: ${VISIT_RESULTS[result]}${next ? `. Próximo passo: ${next}` : ''}`);
+      const {error}=await supabase.rpc('save_visit_result',{_visit:visit.id,_result:result,_notes:String(f.get('notes')??''),_next:next,...(fuDate?{_follow_at:new Date(`${fuDate}T09:00`).toISOString()}:{}),_products:f.getAll('products').map(String)});
+      if(error)throw error;
       toast.success('Visita registrada. CRM e follow-ups atualizados.'); await inv(); onClose();
     } catch (err) { fail(err); } finally { setSaving(false); }
   }
   return <Modal open={Boolean(visit)} onOpenChange={v => !v && onClose()} title="Registrar resultado da visita">
     <form onSubmit={submit} className="grid gap-3">
       <Field label="Resultado"><Select name="result" required defaultValue="interessado">{Object.entries(VISIT_RESULTS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</Select></Field>
+      <Field label="Produtos de interesse"><Select name="products" multiple className="h-24">{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Select></Field>
       <Field label="Observações"><Textarea name="notes" /></Field>
       <Field label="Próximo passo" hint="Se informar uma data, um follow-up é criado automaticamente."><Input name="next_step" placeholder="Ex.: Enviar proposta" /></Field>
       <Field label="Data do follow-up"><Input name="fu_date" type="date" /></Field>
