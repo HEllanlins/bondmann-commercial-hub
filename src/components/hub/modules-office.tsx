@@ -18,9 +18,9 @@ const useName = () => { const { data: cs = [] } = useCompanies(); return (id: st
 export function CRM() {
   const { data: opps = [] } = useOpportunities(); const { data: companies = [] } = useCompanies(); const { data: products = [] } = useProducts(); const inv = useInvalidateHub(); const name = useName(); const [open, setOpen] = useState(false);
   async function move(id: string, stage: string, companyId: string) {
-    await supabase.from('opportunities').update({ stage, updated_at: new Date().toISOString() }).eq('id', id);
+    const updated=await supabase.from('opportunities').update({ stage, updated_at: new Date().toISOString() }).eq('id', id).select('id').single();if(updated.error){toast.error(updated.error.message);return;}
     const cs = { proposta: 'negociacao', interessado: 'negociacao', cliente: 'cliente', perdido: 'perdido', contatado: 'lead', visitado: 'visitado' }[stage];
-    if (cs) await supabase.from('companies').update({ stage: cs }).eq('id', companyId);
+    if (cs) {const updated=await supabase.from('companies').update({ stage: cs }).eq('id', companyId).select('id').single();if(updated.error){toast.error(updated.error.message);return;}}
     await logEvent(companyId, 'crm', `Oportunidade movida para ${PIPELINE.find(p => p[0] === stage)?.[1]}`); await inv();
   }
   async function create(e: React.FormEvent<HTMLFormElement>) {
@@ -62,7 +62,7 @@ export function FollowUps() {
   const { data: fus = [] } = useFollowUps(); const name = useName(); const inv = useInvalidateHub(); const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<'hoje' | 'atrasado' | 'pendente' | 'concluido' | 'cancelado'>('hoje');
   const b = fus.map(f => ({ f, k: followStatus(f) })); const n = (k: string) => b.filter(x => x.k === k).length;
-  async function set(id: string, status: string, cid: string | null, title: string) { await supabase.from('follow_ups').update({ status, done: status === 'concluido' }).eq('id', id); if (cid) await logEvent(cid, 'follow-up', `Follow-up ${status === 'concluido' ? 'concluído' : 'cancelado'}: ${title}`); await inv(); }
+  async function set(id: string, status: string, cid: string | null, title: string) { const {error}=await supabase.from('follow_ups').update({ status, done: status === 'concluido' }).eq('id', id).select('id').single();if(error){toast.error(error.message);return;} if (cid) await logEvent(cid, 'follow-up', `Follow-up ${status === 'concluido' ? 'concluído' : 'cancelado'}: ${title}`); await inv();toast.success('Follow-up atualizado.'); }
   return <div className="mt-6">
     <div className="flex flex-wrap justify-between gap-3"><Tabs value={tab} onChange={setTab} items={[['hoje', 'Hoje', n('hoje')], ['atrasado', 'Atrasados', n('atrasado')], ['pendente', 'Próximos', n('pendente')], ['concluido', 'Concluídos', n('concluido')], ['cancelado', 'Cancelados', n('cancelado')]]} /><Button onClick={() => setOpen(true)}><Plus /> Novo follow-up</Button></div>
     <div className="mt-4 space-y-3">{b.filter(x => x.k === tab).length === 0 ? <Empty>{fus.length ? 'Nada nesta lista.' : 'Você ainda não possui follow-ups.'}</Empty> : b.filter(x => x.k === tab).map(({ f, k }) => <Card key={f.id}><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-bold">{f.title}</p><p className="text-xs text-steel">{f.company_id ? name(f.company_id) : 'Sem empresa'} · {fmtDate(f.due_at)} · Prioridade {PRIORITIES[f.priority] ?? f.priority}</p>{f.notes ? <p className="mt-1 text-sm text-steel">{f.notes}</p> : null}</div><div className="flex items-center gap-2"><Pill tone={k === 'atrasado' ? 'bad' : k === 'hoje' ? 'warn' : k === 'concluido' ? 'ok' : 'default'}>{FOLLOW_LABELS[k]}</Pill>{k !== 'concluido' && k !== 'cancelado' ? <><Button size="sm" onClick={() => void set(f.id, 'concluido', f.company_id, f.title)}><Check /> Concluir</Button><Button size="icon" variant="ghost" aria-label="Cancelar" onClick={() => void set(f.id, 'cancelado', f.company_id, f.title)}><X /></Button></> : null}</div></div></Card>)}</div>

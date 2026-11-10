@@ -190,6 +190,9 @@
 .bond-map-icon { background: var(--aqua); color: var(--primary-foreground); border: 2px solid var(--card); border-radius: 50%; text-align: center; line-height: 26px; font-weight: 700; }
 .bond-map-icon[data-status="visitada"], .bond-map-icon[data-status="realizada"] { background: var(--success); }
 .bond-map-icon[data-status="cancelada"], .bond-map-icon[data-status="pulada"] { background: var(--steel); }
+.bond-map-icon[data-current="true"] { outline: 3px solid var(--foreground); }
+.bond-map-icon[data-kind="finish"] { border-radius: 6px; width: 44px !important; }
+.bond-map-origin { background: var(--foreground); color: var(--background); border-radius: 6px; }
 .bond-map-popup { color: var(--foreground); }
 .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--card); }
 .leaflet-container { font-family: var(--font-sans); }
